@@ -1,0 +1,648 @@
+/* What the chat screen needs that app.css does not carry.
+
+   app.css is frozen, so every rule here is new and every class is prefixed .ch-. The design is
+   unchanged: these are the pieces the mock drew with fake data and the real daemon draws with
+   more parts. Nothing here restyles a class app.css owns, with two exceptions that are marked.
+
+   xterm brings its own stylesheet, loaded from /vendor/xterm.css when the terminal tab is
+   first opened. */
+
+/* ---- the chat opens at once (an exception: it restyles .screen) ------ */
+
+/* Every screen fades in from opacity 0 over 0.22 s (app.css). A tap on a Fleet card opens the
+   chat, and the fade hid the chat for those first frames, on a phone that is already slow to draw
+   the log. So the chat shows on its first frame. The other screens keep the fade. */
+#screen-chat { animation: none; }
+
+/* ---- the kebab menu on the agent header ------------------------------- */
+
+.ch-menu { position: relative; margin-left: auto; }
+.ch-menu > summary { list-style: none; cursor: pointer; }
+.ch-menu > summary::-webkit-details-marker { display: none; }
+.ch-menu > summary::marker { content: ""; }
+
+.ch-menu-body {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 40;
+  display: flex; flex-direction: column; gap: 2px;
+  min-width: 190px; padding: 6px;
+  background: var(--surface); border: 1px solid var(--border-hi);
+  border-radius: var(--rm); box-shadow: var(--shadow);
+}
+.ch-menu-label {
+  color: var(--text-faint); font-size: 11px; letter-spacing: .3px;
+  text-transform: uppercase; padding: 4px 8px 2px;
+}
+.ch-menu-body .mode-select { max-width: none; margin-bottom: 4px; }
+.ch-menu-item {
+  text-align: left; padding: 8px 10px; min-height: 36px;
+  border-radius: var(--r); color: var(--text-dim); font-size: 13px;
+}
+.ch-menu-item:hover { background: var(--hover); color: var(--text); }
+.ch-menu-item.ch-danger { color: var(--down); border-top: 1px solid var(--border); margin-top: 4px; }
+.ch-menu-item[disabled] { opacity: .5; }
+
+/* ---- the face switcher -------------------------------------------------- */
+
+/* Chat, Terminal, and the agent's own pages. The strip itself is .subtabs, which app.css owns;
+   .ch-faces is the same element under a name this file may style.
+
+   Above 720px nothing here applies. The dock is not a box at all, so the strip stays the flex
+   child app.css pins above the log and the desktop layout is untouched. */
+.ch-facedock { display: contents; }
+
+@media (max-width: 719px) {
+  /* The slot the strip sits in. It holds the strip's height whether the strip is in it or
+     floating, so the log never moves under a reader who is in the middle of it. 42px is the
+     strip: a 34px button, 3px of padding each side, and a 1px border each side. */
+  .ch-facedock { display: block; height: 42px; margin-bottom: var(--s3); }
+  .ch-faces { margin-bottom: 0; }
+
+  /* Off the flow and over the log, the way a phone browser holds its toolbar. The shadow is the
+     one the "New below" pill uses, which is how this app says a thing is floating. */
+  .ch-faces.ch-float {
+    position: fixed; top: calc(var(--s1) + env(safe-area-inset-top, 0px)); left: var(--s3); right: var(--s3);
+    z-index: 25;
+    /* The shadow, then a ring of page colour round the pill and up to the top edge. The log no
+       longer shows in the gap above the pill or at its round corners. */
+    box-shadow: var(--shadow), 0 0 0 var(--s2) var(--bg),
+      0 calc(-1 * var(--s1) - env(safe-area-inset-top, 0px)) 0 var(--s2) var(--bg);
+  }
+
+  /* Away. Up past its own shadow, so nothing of it is left at the top edge. app.css turns every
+     transition off under prefers-reduced-motion, so there it goes and comes with no slide. */
+  .ch-faces.ch-gone {
+    transform: translateY(calc(-100% - var(--s2))); opacity: 0; pointer-events: none;
+  }
+}
+
+html.motion .ch-faces { transition: transform .18s ease, opacity .18s ease; }
+
+/* ---- the log ----------------------------------------------------------- */
+
+/* The way back through the conversation. The log also asks for more on its own when you reach
+   the top, and this is the same action for a thumb that would rather press something. */
+.ch-older {
+  align-self: center; padding: 5px 12px; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--surface);
+  color: var(--text-dim); font-size: 12px;
+}
+.ch-older:hover { color: var(--text); background: var(--surface-hi); }
+
+.ch-empty { color: var(--text-faint); font-size: 13px; }
+
+/* A failed tool result. Red enough to find, quiet enough to leave alone. */
+.toolrow.ch-failed .summary { color: var(--down); }
+
+/* A tool row is one line. A command longer than the phone is cut with an ellipsis rather than
+   pushed off the edge, and the whole input is the chip's title for anyone who wants it. */
+.log .toolrow { flex-wrap: nowrap; max-width: 100%; }
+.log .toolrow .chip,
+.log .toolrow .summary {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* A question the agent asked, read back out of the record. It is not a card any more: it was
+   answered, and this is the transcript of it. */
+.ch-asked {
+  border-left: 2px solid var(--border-hi); padding-left: var(--s2);
+  max-width: min(660px, 100%);
+}
+.ch-asked-head { font-size: 13.5px; margin: 0 0 6px; }
+.ch-asked-list { margin: 0; padding-left: 20px; font-size: 12.5px; color: var(--text-dim); }
+.ch-asked-list li { margin-bottom: 3px; }
+.ch-asked-list b { color: var(--text); font-weight: 500; }
+.ch-asked-list em { font-style: normal; color: var(--text-faint); }
+.ch-asked-list em::before { content: " · "; }
+.ch-asked-foot { color: var(--text-faint); font-size: 11px; margin: 6px 0 0; }
+
+/* What the daemon said to you, at the foot of the log. One quiet line, no dot, no box. */
+.ch-note { color: var(--text-faint); font-size: 12px; margin: 0; padding: 0 2px; }
+
+/* There is new content under the fold and the reader is up the page.
+
+   Two positions for one pill. Above 720px the log box is the scroller, so the pill sticks to
+   its bottom edge and rides with it. Under 720px the page scrolls inside a wrapper that is
+   itself a scroll container, where sticky has nothing to stick to, so the pill is fixed to the
+   viewport instead, clear of the composer and the tab bar. */
+.ch-new {
+  position: sticky; bottom: 12px; z-index: 30;
+  align-self: flex-end; margin-top: -8px;
+  display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border-radius: 50%;
+  border: 1px solid var(--border-hi); background: var(--surface-hi);
+  color: var(--text-dim); box-shadow: var(--shadow); cursor: pointer;
+}
+.ch-new svg { width: 18px; height: 18px; }
+@media (hover: hover) { .ch-new:hover { color: var(--text); background: var(--hover); } }
+.ch-new:active { color: var(--text); }
+@media (max-width: 719px) {
+  .ch-new {
+    position: fixed; left: auto; right: 16px; transform: none; margin-top: 0;
+    bottom: calc(var(--bar-h, var(--tab-h)) + env(safe-area-inset-bottom) + var(--composer-h, 96px) + 12px + var(--quote-h, 0px));
+  }
+}
+
+/* How many unread messages are below: a bare small red numeral on the arrow's shoulder. */
+.ch-new-count {
+  position: absolute; top: -7px; right: -3px;
+  font-size: 12px; font-weight: 500; line-height: 1; color: var(--needs);
+}
+
+/* The day, where the log moves to a new one. Quiet, centred, no line. */
+.ch-day {
+  align-self: center; margin: 10px 0 2px; font-size: 12px; line-height: 16px;
+  color: var(--text-faint);
+}
+
+/* The line above the first message he had not read when the chat opened. Brought to the top of
+   the screen, under the bars, so the scroll stops short of them. */
+.ch-newline {
+  display: flex; align-items: center; gap: 10px; margin: 6px 0; align-self: stretch;
+  font-size: 12px; line-height: 16px; color: var(--needs);
+  scroll-margin-top: 12px;
+}
+.ch-newline::before, .ch-newline::after {
+  content: ""; flex: 1; height: 1px; background: color-mix(in srgb, var(--needs) 45%, transparent);
+}
+@media (max-width: 719px) {
+  .ch-newline { scroll-margin-top: 84px; }
+}
+
+/* The agent is working and has written nothing yet. */
+.ch-dots { display: flex; gap: 5px; align-items: center; height: 18px; margin: 0; }
+.ch-dots span {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--text-faint);
+  animation: chdots 1.2s ease-in-out infinite;
+}
+.ch-dots span:nth-child(2) { animation-delay: .15s; }
+.ch-dots span:nth-child(3) { animation-delay: .3s; }
+@keyframes chdots { 0%, 60%, 100% { opacity: .25 } 30% { opacity: 1 } }
+
+/* ---- the ask cards ----------------------------------------------------- */
+
+/* One question inside an ask that carries several. */
+.ch-block + .ch-block { border-top: 1px solid var(--border); margin-top: var(--s3); padding-top: var(--s3); }
+.ch-q { font-size: 14px; margin: 0 0 var(--s2); }
+.ch-hint { color: var(--text-faint); font-size: 11.5px; margin: 0 0 var(--s2); }
+
+/* An option's own description, which the agent wrote. app.css styles .option for a swatch and a
+   key; a real option has a label and a sentence under it instead. */
+/* A label and its sentence sit together in the middle of the row, not pushed to its edges. */
+.option { flex-wrap: wrap; align-content: center; row-gap: 0; padding-block: 6px; text-align: left; }
+.ch-odesc {
+  display: block; width: 100%; font-style: normal;
+  color: var(--text-faint); font-size: 11.5px; margin-top: 2px;
+}
+
+/* ---- the composer ------------------------------------------------------ */
+
+/* One rounded card, the shape the Claude app uses: what you pasted, what you are typing, and
+   the controls, stacked. app.css still supplies .composer-wrap, which is what makes the card
+   sit on the bottom edge on a phone and at the foot of the column on a desktop. Nothing else
+   from the old pill is used, because a pill cannot hold three rows. */
+.ch-card {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 8px;
+  border: 1px solid var(--border); border-radius: 24px;
+  background: var(--surface);
+}
+
+.ch-input {
+  width: 100%; min-height: 44px; max-height: 160px;
+  border: 0; background: transparent; color: var(--text);
+  font: inherit; font-size: 15px; line-height: 1.5;
+  padding: 10px 12px 2px; resize: none;
+}
+.ch-input:focus { outline: none; }
+
+.ch-tools { display: flex; align-items: center; gap: 8px; }
+.ch-grow { flex: 1 1 auto; }
+
+/* Every control in the bottom row is the same round 44px button. One size, one shape, and the
+   only difference is the accent on Send, which is the one that does something irreversible. */
+.ch-round {
+  flex: 0 0 auto; width: 44px; height: 44px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  border: 0; background: var(--surface-hi); color: var(--text-dim);
+}
+.ch-round svg { width: 20px; height: 20px; }
+.ch-round:hover { background: var(--hover); color: var(--text); }
+.ch-round[disabled] { opacity: .45; cursor: default; }
+.ch-round[disabled]:hover { background: var(--surface-hi); color: var(--text-dim); }
+.ch-round[aria-pressed="true"] { background: var(--accent-bg); color: var(--text); }
+
+.ch-send { background: var(--accent); color: var(--accent-ink); }
+.ch-send:hover { background: var(--accent); filter: brightness(1.08); }
+.ch-send[disabled] { opacity: .35; }
+.ch-send[disabled]:hover { background: var(--accent); filter: none; }
+
+/* ---- the plus menu ------------------------------------------------------ */
+
+/* Everything the bottom row used to carry is in here: attach, the permission mode, the model
+   and the five phone keys. It rises from the plus, so it opens where the thumb already is. */
+.ch-plus-wrap { position: relative; display: inline-flex; flex: 0 0 auto; }
+
+.ch-plus-menu {
+  position: absolute; left: 0; bottom: calc(100% + 8px); z-index: 60;
+  display: flex; flex-direction: column; gap: 2px;
+  width: max-content; min-width: 220px; max-width: min(320px, calc(100vw - 32px));
+  max-height: min(70vh, 520px); overflow-y: auto; overscroll-behavior: contain;
+  padding: 6px;
+  background: var(--surface); border: 1px solid var(--border-hi);
+  border-radius: var(--rm); box-shadow: var(--shadow);
+}
+.ch-plus-item {
+  text-align: left; padding: 8px 10px; min-height: 40px;
+  border: 0; background: none; border-radius: var(--r);
+  color: var(--text-dim); font-size: 13px;
+}
+.ch-plus-item:hover { background: var(--hover); color: var(--text); }
+.ch-plus-item[aria-checked="true"] { color: var(--text); }
+.ch-plus-label {
+  color: var(--text-faint); font-size: 11px; letter-spacing: .3px;
+  text-transform: uppercase; margin: 6px 0 2px; padding: 0 10px;
+}
+.ch-plus-row { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 6px 2px; }
+.ch-plus-pick {
+  padding: 5px 10px; min-height: 32px;
+  border: 1px solid var(--border); border-radius: 999px;
+  background: var(--surface-hi); color: var(--text-dim);
+  font-size: 12px;
+}
+.ch-plus-pick:hover { color: var(--text); background: var(--hover); }
+.ch-plus-pick[aria-checked="true"] {
+  border-color: var(--accent); color: var(--text); background: var(--accent-bg);
+}
+/* The tiny marker on a model that costs nothing. Bare text, no pill. */
+.ch-free { margin-left: 5px; font-size: 10px; color: var(--accent); }
+/* OpenCode offers forty-odd models; the row scrolls rather than filling the screen. */
+.ch-plus-row.ch-plus-many { max-height: 216px; overflow-y: auto; }
+
+/* What you pasted, inside the card and above the text. */
+.ch-attach { display: flex; gap: 6px; flex-wrap: wrap; padding: 2px 4px 0; }
+.ch-thumb {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 6px 4px 4px;
+  border: 1px solid var(--border); border-radius: 12px; background: var(--surface-hi);
+}
+.ch-thumb img { width: 40px; height: 40px; object-fit: cover; border-radius: 8px; display: block; }
+.ch-thumb .ch-name {
+  font-size: 12px; color: var(--text-dim);
+  max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ch-rm {
+  width: 22px; height: 22px; border-radius: 50%; border: 0;
+  background: var(--hover); color: var(--text-dim); font-size: 13px; line-height: 1;
+}
+.ch-rm:hover { color: var(--text); }
+
+/* The five keys, inside the card between the text and the controls. */
+.ch-keys { margin: 0; }
+
+/* ---- the files strip --------------------------------------------------- */
+
+.ch-size { color: var(--text-faint); font-family: var(--font-mono); font-size: 10.5px; }
+.files.ch-busy { opacity: .6; }
+/* The download is an anchor so the browser saves the file; .file-dl draws the bare 26px box. */
+a.file-dl { display: inline-flex; align-items: center; justify-content: center; }
+
+/* ---- the terminal ------------------------------------------------------ */
+
+/* The line above the emulator when there is nothing on the other end. */
+.ch-asleep {
+  display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap;
+  padding: var(--s2); margin-bottom: var(--s2);
+  border: 1px solid var(--border); border-radius: var(--rm); background: var(--surface);
+  color: var(--text-dim); font-size: 12.5px;
+}
+
+/* xterm measures the box it is given, so the box has to have a size of its own. On the phone
+   the page scrolls and the terminal takes a fixed height; above 720px app.css already makes it
+   the flexible part of the column. */
+.term { min-height: 320px; padding: var(--s1); }
+.term .xterm { height: 100%; }
+.term .xterm-viewport { background: transparent !important; }
+
+/* ---- an agent's own page ----------------------------------------------- */
+
+.ch-frame {
+  display: block; width: 100%; min-height: 420px; height: 100%;
+  border: 0; background: var(--bg);
+}
+
+@media (min-width: 720px) {
+  .pf-body { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+  .ch-frame { flex: 1 1 auto; min-height: 0; }
+  .page-frame { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+}
+
+/* The three add tiles at the top of the plus menu: Camera, Photos, Files. Square, outlined, an
+   icon over a word, the way the Claude app draws them. */
+.ch-add { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s1); margin-bottom: var(--s2); }
+.ch-add-tile {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  min-height: 76px; padding: var(--s2) 4px;
+  border: 1px solid var(--border-hi); border-radius: 12px; background: none;
+  color: var(--text); font: inherit; font-size: 13px; cursor: pointer;
+}
+.ch-add-tile svg { width: 22px; height: 22px; color: var(--text-dim); }
+.ch-add-tile:hover, .ch-add-tile:focus-visible { background: var(--hover); outline: none; }
+
+/* The page's room for the floating composer on the phone, from its measured height (see
+   Composer.jsx). app.css keeps 96px under main; the rest is made up here, below the log. */
+@media (max-width: 719px) {
+  .log::after { content: ""; display: block; height: max(0px, calc(var(--composer-h, 96px) - 80px)); }
+  /* The round buttons float over the right edge of the log. While one shows, the log keeps room
+     under its last line for the stack, so at the bottom no button covers words. The log ends
+     16px over the composer; the down arrow's top is 52px over it, the back arrow's 100px. */
+  .log:has(> .ch-new)::after { height: calc(max(0px, calc(var(--composer-h, 96px) - 80px)) + 44px + var(--quote-h, 0px)); }
+  .log:has(> .ch-prev)::after { height: calc(max(0px, calc(var(--composer-h, 96px) - 80px)) + 92px + var(--quote-h, 0px)); }
+}
+
+/* Back to the previous message. The same round button as the one down, sitting above it, or in
+   its place when there is nothing new below. */
+.ch-prev {
+  position: sticky; bottom: 60px; z-index: 30;
+  align-self: flex-end; margin-top: -8px;
+  display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border-radius: 50%;
+  border: 1px solid var(--border-hi); background: var(--surface-hi);
+  color: var(--text-dim); box-shadow: var(--shadow); cursor: pointer;
+}
+.ch-prev svg { width: 18px; height: 18px; }
+/* The hover look only where there is a real pointer: a phone keeps it after a tap, and it read as
+   the button turning see-through. A tap gets a brief press instead. */
+@media (hover: hover) { .ch-prev:hover { color: var(--text); } }
+.ch-prev:active { color: var(--text); transform: scale(.94); }
+@media (max-width: 719px) {
+  /* One spot that never moves, above the down arrow's, so a second tap lands on the same button
+     whether or not the down arrow has appeared under it. */
+  .ch-prev {
+    position: fixed; left: auto; right: 16px; transform: none; margin-top: 0;
+    bottom: calc(var(--bar-h, var(--tab-h)) + env(safe-area-inset-bottom) + var(--composer-h, 96px) + 60px + var(--quote-h, 0px));
+  }
+  .ch-prev:active { transform: scale(.94); }
+}
+/* A short window, like a float panel at a sixth or a third, has no room for the back arrow's
+   room: it filled all the space over the composer. The arrow goes; the down arrow stays. */
+@media (max-width: 719px) and (max-height: 420px) {
+  .ch-prev { display: none; }
+  .log:has(> .ch-prev):not(:has(> .ch-new))::after { height: max(0px, calc(var(--composer-h, 96px) - 80px)); }
+}
+
+/* A finished turn's workings, folded into one quiet row above the answer. */
+.ch-work { display: flex; flex-direction: column; gap: 6px; }
+.ch-work-toggle {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 6px;
+  min-height: 40px; padding: 4px 8px 4px 0; border: 0; background: none; cursor: pointer;
+  color: var(--text-faint); font: inherit; font-size: 12.5px;
+}
+.ch-work-toggle svg { width: 13px; height: 13px; transition: transform .15s ease; }
+.ch-work-toggle[aria-expanded="true"] svg { transform: rotate(90deg); }
+.ch-work-toggle:hover, .ch-work-toggle:focus-visible { color: var(--text-dim); outline: none; }
+
+.ch-older-quiet { margin: 0; text-align: center; color: var(--text-faint); font-size: 12px; }
+
+/* Dictation: the words as he says them, the guesses dim, and a row of cancel, level, time, done. */
+.ch-dict-text { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 160px; overflow-y: auto; color: var(--text); }
+.ch-dict-draft { color: var(--text-faint); }
+.ch-dict-note { margin: 4px 4px 0; font-size: 12.5px; color: var(--needs); }
+.ch-dict-row { gap: 10px; }
+.ch-dict-meter { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 3px; height: 30px; overflow: hidden; }
+.ch-dict-meter i { display: block; width: 3px; border-radius: 2px; background: var(--accent, #66dbaf); opacity: .85; }
+.ch-dict-time { font-family: var(--font-mono); font-size: 13px; color: var(--text-dim); font-variant-numeric: tabular-nums; min-width: 36px; }
+
+/* A code block with its copy button in the top right corner. */
+.codeblock { position: relative; }
+.codeblock pre { padding-right: 64px; }
+.code-copy {
+  position: absolute; top: 6px; right: 6px; z-index: 1;
+  border: 1px solid var(--border); border-radius: 8px; background: var(--surface);
+  color: var(--text-dim); font: 500 12px var(--font-ui, Inter, sans-serif); padding: 4px 9px;
+  -webkit-user-select: none; user-select: none;
+}
+.code-copy:active { color: var(--text); }
+
+/* The agent's browser: a bar, the live picture, and while he has control, typing and keys. */
+.bv { display: flex; flex-direction: column; gap: 8px; padding: 8px 0 calc(var(--composer-h, 96px) + 16px); }
+.bv-bar { display: flex; align-items: center; gap: 10px; }
+.bv-state { flex: 1; font-size: 13px; color: var(--text-dim); }
+.bv-take { border-color: var(--accent, #66dbaf); color: var(--accent, #66dbaf); }
+.bv-screen { position: relative; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: #fff; }
+.bv-screen img { will-change: transform; }
+.bv-screen.bv-live { border-color: var(--accent, #66dbaf); }
+.bv-screen img { display: block; width: 100%; height: auto; user-select: none; -webkit-user-select: none; }
+.bv-wait, .bv-empty p { margin: 24px 12px; color: var(--text-dim); font-size: 14px; }
+.bv-empty { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 0 4px; }
+.bv-err { margin: 0; color: var(--needs); font-size: 13px; }
+/* A login he typed, offered for the vault. One line of words and two buttons, never the password. */
+.bv-offer { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-hi); }
+.bv-offer p { margin: 0; flex: 1 1 200px; font-size: 14px; }
+.bv-saved { margin: 0; font-size: 13px; color: var(--text-dim); }
+.bv-keys { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.bv-keys input { flex: 1 1 100%; min-width: 0; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font: inherit; }
+
+/* An image from the agent's outbox, inside its reply. Tap opens the file itself. */
+.md-img { display: block; margin: 10px 0; }
+/* A small preview in the chat; the tap opens the whole picture in the zoom view. */
+.md-img img { display: block; max-width: min(100%, 220px); max-height: 240px; object-fit: cover; border-radius: 12px; border: 1px solid var(--border); }
+
+/* A command or a result, whole. The rows are taps now, so they say so with the pointer. */
+.ch-tap[data-tool] { cursor: pointer; }
+.toolview { position: fixed; inset: 0; z-index: 60; background: var(--bg); display: flex; flex-direction: column; }
+.toolview-bar { display: flex; align-items: center; justify-content: space-between; padding: calc(env(safe-area-inset-top, 0px) + 10px) 14px 10px; border-bottom: 1px solid var(--border); }
+.toolview-name { font-family: var(--font-mono); font-size: 13px; color: var(--text-dim); }
+.toolview-x { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border); background: none; color: var(--text); font-size: 24px; line-height: 1; }
+.toolview-body { flex: 1; overflow: auto; padding: 14px 14px calc(env(safe-area-inset-bottom, 0px) + 24px); -webkit-overflow-scrolling: touch; }
+.toolview-head { margin: 14px 0 6px; font-family: var(--font-mono); font-size: 11px; letter-spacing: .6px; text-transform: uppercase; color: var(--text-faint); }
+.toolview-pre { margin: 0; padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); font-family: var(--font-mono); font-size: 12.5px; line-height: 1.5; color: var(--text); white-space: pre-wrap; word-break: break-word; }
+.toolview-failed { color: var(--needs); }
+.toolview-note { margin: 10px 0; font-size: 13px; color: var(--text-dim); }
+
+/* A call with the owner, among the messages. One quiet line with a thin phone glyph, like a phone
+   app's call log: no box, no pill. Missed is in the rose that means "needs you". A missed call's
+   voicemail sits under it, a slim player that keeps to the line's width. */
+.ch-call { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin: 2px 0; }
+.ch-call-open { display: inline-flex; align-items: center; gap: 7px; padding: 4px 0; border: 0; background: none; color: var(--text-dim); font: inherit; font-size: 13px; cursor: pointer; }
+.ch-call-open:hover { color: var(--text); }
+.ch-call-open:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 2px; border-radius: 4px; }
+.ch-call-icon { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linejoin: round; flex: none; }
+.ch-call-missed .ch-call-open { color: var(--needs); }
+.ch-call-audio { width: min(300px, 100%); height: 34px; }
+
+/* The whole call, in the tool call's panel. */
+.cv-why { margin: 0 0 12px; font-size: 14px; color: var(--text-dim); }
+.cv-audio { width: min(360px, 100%); height: 36px; margin-bottom: 14px; }
+.cv-lines { display: flex; flex-direction: column; gap: 10px; }
+.cv-line { margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--text); overflow-wrap: anywhere; }
+.cv-who { display: block; font-size: 12px; color: var(--text-faint); margin-bottom: 1px; }
+.cv-you .cv-who { color: var(--text-dim); }
+/* Talk to the agent. The waveform the voice apps use, kept apart from the mic, which is
+   dictation. In Ergo's colours: mint bars, the colour of a live voice here, on a disc a step
+   lighter than the box, so it stands out without competing with the mint Send beside it. */
+.ch-round.ch-voice { background: var(--surface-hi); color: var(--accent); border-color: transparent; }
+.ch-round.ch-voice:hover { background: color-mix(in srgb, var(--accent) 12%, var(--surface-hi)); }
+.ch-round.ch-voice:disabled { opacity: .4; }
+
+/* ---- the Files tab -------------------------------------------------------- */
+.ft { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: var(--s3); padding-bottom: var(--s4); }
+.ft-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--border); }
+.ft-row { display: flex; align-items: center; gap: var(--s2); border-bottom: 1px solid var(--border); }
+.ft-open { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding: 12px 2px; background: none; border: 0; text-align: left; color: var(--text); cursor: pointer; }
+.ft-name { max-width: 100%; font-family: var(--font-mono); font-size: 13px; overflow-wrap: anywhere; }
+.ft-meta { font-family: var(--font-mono); font-size: 11px; color: var(--text-faint); }
+.ft-open:hover .ft-name { color: var(--accent); }
+.ft-dl { flex: 0 0 auto; width: 40px; height: 40px; }
+.ft-empty { margin: var(--s3) 0; font-size: 13px; color: var(--text-dim); }
+.ft-send { align-self: flex-start; }
+.ft-count { margin-left: 2px; cursor: inherit; }
+/* The Open tab: the agent's OPEN.md, one row per list line, under its heading. */
+.ot-head { padding: var(--s3) 2px 4px; font-size: 11px; color: var(--text-faint); border-bottom: 1px solid var(--border); }
+.ot-line { font-size: 14px; line-height: 1.45; overflow-wrap: anywhere; }
+.fv-acts { display: inline-flex; gap: 8px; }
+a.fv-dl { display: inline-flex; align-items: center; justify-content: center; color: var(--text); }
+a.fv-dl svg { width: 18px; height: 18px; }
+.fv-prose { font-size: 14.5px; line-height: 1.6; color: var(--text); overflow-wrap: anywhere; }
+.fv-prose table { border-collapse: collapse; display: block; overflow-x: auto; }
+.fv-prose th, .fv-prose td { border: 1px solid var(--border); padding: 4px 8px; }
+
+/* ---- a task quoted above the message box, like a WhatsApp reply -------------- */
+.tq { display: flex; align-items: flex-start; gap: 8px; margin: 0 0 6px; padding: 8px 8px 8px 12px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--accent); }
+.tq-body { flex: 1 1 auto; min-width: 0; }
+.tq-who { font-size: 12.5px; font-weight: 600; color: var(--accent); }
+.tq-body { cursor: pointer; -webkit-touch-callout: none; user-select: none; }
+.tq-what { margin-top: 2px; font-size: 13.5px; line-height: 1.35; color: var(--text-dim); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.tq-full .tq-what { display: block; max-height: 40vh; overflow-y: auto; }
+.tq-more { margin-top: 6px; font-size: 12.5px; line-height: 1.4; color: var(--text-faint); }
+.tq-x { flex: 0 0 auto; width: 28px; height: 28px; border: 0; background: none; color: var(--text-faint); font-size: 20px; line-height: 1; cursor: pointer; }
+.tq-x:hover { color: var(--text); }
+
+/* WhatsApp drafts at the foot of the chat. */
+.ch-wa { margin: 6px 0; padding: 12px 14px; border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 12px; background: var(--surface); }
+.ch-wa-label { margin: 0 0 8px; font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-faint); }
+.ch-wa-off { margin: 0 0 8px; font-size: 12.5px; color: var(--text-dim); }
+.ch-wa .cf-wa-draft:last-child { border-bottom: 0; padding-bottom: 0; }
+/* The draft in a chat card is read, not glanced at: about seven lines, at the chat's own size.
+   He can still drag it taller. */
+.ch-wa .cf-wa-text { font-size: 15px; min-height: 172px; }
+
+/* What changes while a reply streams never holds the reader's place. The browser keeps the line he
+   is reading still by anchoring to one element on screen; when that element was the growing reply,
+   re-drawn a word at a time, the anchor was lost and found again every word and the page shook
+   while he scrolled up. Excluded, the anchor is always a settled message above.
+
+   Everything under the growing reply is excluded too. When the reply fills the screen there is no
+   settled message above in view, so the browser anchored to what sat below it, a card, a note,
+   the arrows, the composer, and scrolled down a word at a time to keep that still: the log
+   followed a reader who had scrolled up a few pixels. */
+.turn.streaming, .ch-dots, .ch-tools-live,
+.turn.streaming ~ *, .ch-dots ~ *, .ch-tools-live ~ *,
+.chat-scroll > .log ~ *, .composer-wrap, .composer-wrap * { overflow-anchor: none; }
+
+/* The browser's own scroll anchoring is off for the whole chat. It picked an element these rules
+   missed and pushed the page about 22px against the finger at the start of a drag up. The log
+   holds the reader's place itself (Log.jsx, firstSeen), so nothing needs it. */
+html:has(.chat-scroll), .chat-scroll, .chat-scroll * { overflow-anchor: none; }
+
+/* A finished text of the turn still arriving, drawn until the record has it. No cursor. */
+.turn.said .cursor { display: none; }
+.ch-stopped { padding: 2px 2px 6px; }
+
+/* On the phone the composer and the tab bar are glass. Message text read through both, so in the
+   chat they are nearly solid. */
+@media (max-width: 719px) {
+  html:has(.chat-scroll) .composer-wrap,
+  html:has(.chat-scroll) .tabbar { background: color-mix(in srgb, var(--bg) 94%, transparent); }
+
+  /* The keyboard is up. The tab bar gives its room to the chat, and the composer sits on the
+     keyboard. See Log.jsx, where kb-up is set. */
+  html.kb-up { --bar-h: 0px; }
+  html.kb-up .tabbar { display: none; }
+  html.kb-up .composer-wrap { bottom: 0; }
+}
+
+/* A scheduled job's result, shown for the owner among the messages. A light green tint and a small
+   label, no border, no icon. Four lines, then Show more. */
+
+/* A message the owner did not type (SystemCard.jsx, JobCard.jsx). Quieter than the chat: no fill and
+   no box, only a 2px mint bar on the left, so it never reads as his bubble or the agent's words.
+   One title line at 13px that never wraps, the text at 14px and dimmer, cut after two whole lines:
+   every line in the cut has the same height, so the cut falls between lines, never through one. */
+.ch-sys {
+  align-self: flex-start; max-width: min(660px, 92%); box-sizing: border-box; margin: 2px 0;
+  padding: 1px 0 1px 12px; border-left: 2px solid color-mix(in srgb, var(--accent) 75%, transparent);
+}
+.ch-sys.opens { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.ch-sys.opens:focus-visible { outline: none; border-left-color: var(--accent); }
+.ch-sys-head {
+  display: flex; gap: 8px; align-items: baseline; margin: 0; min-width: 0;
+  font-size: 13px; line-height: 20px; font-weight: 500;
+}
+.ch-sys-title { flex: 0 1 auto; min-width: 0; max-width: 68%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: color-mix(in srgb, var(--text) 82%, transparent); }
+/* Where it came from shrinks first, so the title keeps its words. */
+.ch-sys-from { flex: 0 1000 auto; min-width: 5.5em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 400; color: var(--text-faint); }
+.ch-sys-bad { flex: none; font-size: 11px; font-weight: 400; color: var(--needs); }
+.ch-sys-at { margin-left: auto; flex: none; font-family: var(--font-mono); font-size: 10.5px; font-weight: 400; color: var(--text-faint); }
+.ch-sys-chev { flex: none; width: 14px; height: 14px; align-self: center; color: var(--text-faint); transition: transform .15s ease; }
+.ch-sys-chev.open { transform: rotate(90deg); }
+.ch-sys-body { margin-top: 1px; overflow: hidden; max-height: calc(2 * 21px); }
+.ch-sys-body.open { max-height: none; }
+.ch-sys-text { font-size: 14px; line-height: 21px; color: color-mix(in srgb, var(--text) 70%, transparent); overflow-wrap: anywhere; }
+/* Cut, every block keeps the one line height, so two lines are exactly two lines. */
+.ch-sys-body:not(.open) .ch-sys-text * { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; font-size: inherit; line-height: inherit; }
+.ch-sys-body.open .ch-sys-text p, .ch-sys-body.open .ch-sys-text ul, .ch-sys-body.open .ch-sys-text ol, .ch-sys-body.open .ch-sys-text pre { margin: 0 0 6px; }
+.ch-sys-text > div > :first-child { margin-top: 0; }
+.ch-sys-text ol, .ch-sys-text ul { padding-left: 1.3em; }
+
+/* Two or more system cards in a row are one line that opens to the list (Log.jsx). */
+.ch-sysrun { align-self: stretch; }
+.ch-sysrun-list { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.ch-sysrun > .ch-sys .ch-sys-title { color: color-mix(in srgb, var(--text) 82%, transparent); }
+
+/* ---- glass, phone -------------------------------------------------------- */
+
+/* the chat box, the Chat/Terminal/Browser/Files strip and the two arrows
+   float as islands of frosted glass, the same glass as the tab bar. The strip behind the chat
+   box goes, so the log shows through round it. A parent with its own blur would hide the log
+   from the card's blur, so the wrap has none. */
+@media (max-width: 719px) {
+  html:has(.chat-scroll) .composer-wrap {
+    background: none; border-top: 0;
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+  }
+  html:has(.chat-scroll) .tabbar { background: var(--glass); }
+
+  .ch-card, .ch-faces, .ch-new, .ch-prev {
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid var(--glass-line);
+  }
+  .ch-card { box-shadow: var(--shadow); }
+  .ch-faces.ch-float { box-shadow: var(--shadow); }
+
+  /* The round buttons in the box are a thin tint on the glass, not solid discs. Send keeps its
+     accent. */
+  .ch-card .ch-round:not(.ch-send) { background: color-mix(in srgb, var(--text) 8%, transparent); }
+}
+
+/* The three dots at the strip's end, and the menu they open (index.jsx). The menu is fixed to the
+   window, outside the strip, because the strip scrolls sideways and would clip it. */
+.subtabs .ch-more {
+  position: sticky; right: -3px; z-index: 2; flex: none; justify-content: center;
+  margin-left: auto; padding: 0 12px; border-radius: 999px;
+  /* Solid, so a label scrolled under it does not show through. Selected, it draws the glider's
+     tint itself, because it covers the glider. */
+  background: var(--surface);
+}
+.subtabs .ch-more[aria-selected="true"] { background: color-mix(in srgb, var(--text) 8%, var(--surface)); }
+.subtabs .ch-more svg { width: 18px; height: 18px; }
+.ch-more-away { position: fixed; inset: 0; z-index: 39; }
+.ch-menu-body.ch-more-menu { position: fixed; z-index: 40; }
+.ch-menu-item[aria-current="true"] { color: var(--text); }
+
+/* The summary of a compacted conversation, folded under one quiet word. */
+.ch-compacted { margin: 8px 2px; color: var(--text-faint); font-size: 12px; }
+.ch-compacted > summary { cursor: pointer; list-style: none; }
+.ch-compacted > summary::-webkit-details-marker { display: none; }
+.ch-compacted > summary::before { content: "▸ "; }
+.ch-compacted[open] > summary::before { content: "▾ "; }
+.ch-compacted-body { margin-top: 6px; color: var(--text-dim, var(--text-faint)); font-size: 13px; max-height: 60vh; overflow-y: auto; }

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Long-press the app icon: change the laptop's address. -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="address"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/change_address">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="dev.ergo.app"
+            android:targetClass="dev.ergo.app.SetupActivity" />
+    </shortcut>
+</shortcuts>

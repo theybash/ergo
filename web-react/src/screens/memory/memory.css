@@ -1,0 +1,47 @@
+/* The few rules the Memory screen needs that the frozen stylesheet does not carry.
+   Everything here is prefixed .mm- so it can never collide with app.css. */
+
+/* The way back. Quiet text, the same as on Recruit. */
+.mm-back {
+  margin-left: auto;
+  border: 0; background: none; padding: 4px 2px;
+  color: var(--text-faint); font-size: 12.5px; text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.mm-back:hover { color: var(--text-dim); }
+
+/* A list of rows: a title and one line under it. No card, no dot, no count badge. */
+.mm-list { display: flex; flex-direction: column; margin-top: var(--s2); }
+
+.mm-row {
+  display: block; width: 100%; text-align: left;
+  padding: var(--s2) 2px;
+  border: 0; border-bottom: 1px solid var(--border); background: none;
+  color: inherit; font: inherit;
+}
+.mm-row:hover { background: var(--surface); }
+.mm-row:disabled { opacity: 0.5; }
+
+.mm-title {
+  display: block;
+  font-size: 15px; line-height: 1.3; color: var(--text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* The one line hook. Cut at one line, because a list of paragraphs is not a list. */
+.mm-hook {
+  display: block; margin-top: 2px;
+  color: var(--text-dim); font-size: 13px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* One memory, open. The words run on the page, like an agent's reply in the chat. */
+.mm-read { margin-top: var(--s2); }
+.mm-read-title { font-size: 17px; margin: 0 0 var(--s2); }
+.mm-prose { font-size: 14px; line-height: 1.55; overflow-wrap: anywhere; }
+
+/* A day of calls is plain lines, not markdown: "12:03 the front desk: ...". */
+.mm-calls {
+  white-space: pre-wrap; overflow-wrap: anywhere;
+  font-size: 14px; line-height: 1.55; color: var(--text);
+}

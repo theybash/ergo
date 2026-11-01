@@ -1,0 +1,14 @@
+Ergo
+Copyright 2026 Devesh Joshi
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+It bundles these fonts, each under the SIL Open Font License 1.1. Their licence texts are in
+fonts/licenses/ and in the Android app's assets/licenses/:
+
+- Inter, Copyright The Inter Project Authors
+- JetBrains Mono, Copyright The JetBrains Mono Project Authors
+- Instrument Serif, Copyright The Instrument Serif Project Authors
+
+It bundles xterm.js and its fit add-on (web-react/public/vendor/), under the MIT License. The
+licence text is in web-react/public/vendor/LICENSE-xterm.txt.

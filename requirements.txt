@@ -1,0 +1,5 @@
+# The daemon's outside packages. Everything else is the Python 3.12 standard library.
+# The versions are the ones this laptop runs (Ubuntu 24.04 packages, 23 October 2026).
+psutil>=5.9          # healthd.py: CPU, memory, disk and battery
+ptyprocess>=0.7      # terminal.py: each agent's terminal
+Pillow>=10.2         # files.py: small previews of pictures; without it the full picture is sent

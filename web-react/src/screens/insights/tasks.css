@@ -1,0 +1,113 @@
+/* The task cards on Insights. Prefixed .tk- so nothing here meets app.css.
+   Quiet chrome: one mint fill for Yes, a rose outline for No, everything else neutral. */
+
+.section.tk { margin-top: var(--s2); margin-bottom: var(--s5); }
+.tk-group { display: grid; gap: var(--s2); grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); margin-bottom: var(--s3); }
+.tk-label {
+  grid-column: 1 / -1; margin: var(--s1) 0 0;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 400; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--text-faint);
+}
+
+.tk-card {
+  position: relative; min-width: 0;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--rb);
+  padding: var(--s3);
+}
+.tk-faded { opacity: .55; }
+
+.tk-who { display: flex; align-items: center; gap: var(--s1); font-size: 13px; color: var(--text-dim); padding-right: 28px; }
+.tk-who .dot { width: 7px; height: 7px; }
+.tk-what { margin: var(--s1) 0 6px; font-family: var(--font-ui); font-size: 16px; font-weight: 500; line-height: 1.35; }
+.tk-from { margin: 0; font-size: 13px; line-height: 1.45; color: var(--text-faint); }
+.tk-get { margin: 4px 0 0; font-size: 13px; line-height: 1.45; color: var(--text-dim); }
+
+/* The x in the corner. Small and faint, so it reads as a way out and not an action. */
+.tk-x {
+  position: absolute; top: 10px; right: 10px; width: 28px; height: 28px;
+  display: grid; place-items: center; border: 0; background: none; border-radius: var(--r);
+  color: var(--text-faint); font-size: 17px; line-height: 1; cursor: pointer;
+}
+.tk-x:hover { color: var(--text); }
+.tk-x-inline { position: static; flex: 0 0 auto; }
+
+.tk-acts { display: flex; align-items: center; gap: var(--s1); margin-top: 14px; }
+.tk-b {
+  flex: 1 1 0; min-width: 0; height: 42px; padding: 0 10px; border-radius: 12px;
+  border: 1px solid var(--border); background: none; color: var(--text);
+  font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.tk-b:hover { border-color: var(--border-hi); }
+.tk-b[disabled] { opacity: .55; cursor: default; }
+.tk-yes { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.tk-yes:hover { filter: brightness(1.07); border-color: var(--accent); }
+.tk-no { border-color: color-mix(in srgb, var(--needs) 60%, var(--border)); color: var(--needs); }
+.tk-no:hover { border-color: var(--needs); }
+
+.tk-line { display: flex; align-items: center; gap: var(--s1); margin: var(--s2) 0 0; font-size: 13px; color: var(--text-dim); }
+.tk-ok { color: var(--accent); }
+.tk-bad { color: var(--needs); }
+.tk-busy .tk-line { color: var(--text); }
+
+/* Working is a thin grey ring, never a word in a pill. */
+.tk-spin {
+  flex: 0 0 auto; width: 12px; height: 12px; border-radius: 50%;
+  border: 1.5px solid var(--border-hi); border-top-color: var(--text-dim);
+  animation: acspin 1s linear infinite;
+}
+
+.tk-plan { margin-top: var(--s2); }
+.tk-plan-toggle {
+  display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none;
+  color: var(--text-dim); font-size: 13px; cursor: pointer;
+}
+.tk-plan-toggle svg { width: 13px; height: 13px; transition: transform .15s ease; }
+.tk-plan-toggle[aria-expanded="true"] svg { transform: rotate(90deg); }
+.tk-steps { margin: 6px 0 0; padding-left: 20px; font-size: 13px; line-height: 1.5; color: var(--text); }
+.tk-steps li + li { margin-top: 3px; }
+
+.tk-ask { margin: 10px 0 0; font-family: var(--font-display); font-style: italic; font-size: 17px; line-height: 1.35; color: var(--text); }
+.tk-quick { display: flex; flex-wrap: wrap; gap: var(--s1); margin-top: 10px; }
+.tk-q {
+  padding: 7px 12px; border: 1px solid var(--border); border-radius: 10px; background: none;
+  color: var(--text-dim); font-size: 13px;
+}
+.tk-q:hover { color: var(--text); border-color: var(--border-hi); }
+
+.tk-result { margin: 6px 0 0; font-size: 13px; line-height: 1.45; color: var(--text-dim); white-space: pre-wrap; overflow-wrap: anywhere; }
+.tk-link { display: inline-block; margin-top: 10px; font-size: 13px; color: var(--accent); overflow-wrap: anywhere; }
+.tk-said { margin: var(--s1) 0 0; font-size: 12.5px; color: var(--needs); }
+
+/* The task pinned on top of a chat, after Prompt. */
+.tk-pin {
+  position: relative; flex: 0 0 auto; margin: 0 0 var(--s2);
+  padding: 12px 40px 12px 14px; border: 1px solid var(--border); border-left: 2px solid var(--accent);
+  border-radius: 12px; background: var(--surface);
+}
+.tk-pin .tk-who { padding-right: 0; }
+.tk-pin .tk-what { font-size: 15px; margin: 6px 0 2px; }
+.tk-pin .tk-steps { margin-top: 6px; }
+
+/* Answered cards, folded: one line until opened, then a box that scrolls on its own. */
+.tk-answered { margin-top: 8px; }
+.tk-answered > summary { cursor: pointer; list-style: none; }
+.tk-answered > summary::-webkit-details-marker { display: none; }
+.tk-answered > summary::before { content: '›'; display: inline-block; margin-right: 6px; transition: transform .15s; }
+.tk-answered[open] > summary::before { transform: rotate(90deg); }
+.tk-count { color: var(--text-faint); margin-left: 4px; }
+.tk-answered-box { max-height: 50vh; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-right: 2px; }
+
+/* The story of a card: offered, plan, and what was said through Prompt. */
+.tk-story-rows { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.tk-said { display: flex; flex-direction: column; gap: 4px; font-size: 13px; line-height: 1.5; }
+.tk-said-who { display: flex; gap: 8px; align-items: baseline; color: var(--text-dim); font-weight: 500; }
+.tk-said-at { color: var(--text-faint); font-weight: 400; font-variant-numeric: tabular-nums; }
+.tk-said-text { color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; max-height: 240px; overflow: auto; }
+.tk-said.note .tk-said-text { color: var(--text-faint); }
+.tk-said.owner .tk-said-text { color: var(--text-dim); }
+
+/* Writing to the agent from the card. */
+.tk-reply { margin-top: 12px; }
+.tk-reply-box { width: 100%; box-sizing: border-box; min-height: 64px; padding: 8px 12px; border: 1px solid var(--border-hi); border-radius: 12px; background: var(--surface); color: var(--text); font: 15px/1.45 var(--font-ui); resize: vertical; }
+.tk-reply-box:focus { outline: none; border-color: var(--text-faint); }
+.tk-open-chat { display: block; margin-top: 8px; padding: 4px 0; background: none; border: 0; color: var(--text-faint); font: 13px var(--font-ui); cursor: pointer; }

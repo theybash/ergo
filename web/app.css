@@ -1,0 +1,709 @@
+/* Command center.
+ *
+ * Every colour, size and space in this file comes from DESIGN.md. Nothing is chosen here. If a
+ * value looks arbitrary, it is in that document with the reason next to it.
+ *
+ * The one rule worth repeating, because breaking it is the usual bug: the complete light
+ * palette is defined on bare :root, dark redefines only what changes, and the explicit
+ * attribute wins in both directions. No colour exists only inside a media query. */
+
+@font-face{font-family:"Instrument Serif";src:url(/fonts/instrument-serif-400.woff2)format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"Inter";src:url(/fonts/inter-400.woff2)format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"Inter";src:url(/fonts/inter-500.woff2)format("woff2");font-weight:500;font-display:swap}
+@font-face{font-family:"JetBrains Mono";src:url(/fonts/jetbrains-mono-400.woff2)format("woff2");font-weight:400;font-display:swap}
+
+:root{
+  --bg:#ffffff;
+  --surface:#ffffff;
+  --border:#e7e5e4;
+  --border-hi:#d6d3d1;
+  --text:#1c1917;
+  --text-dim:#78716c;
+  --text-faint:#a8a29e;
+  --accent:#248064;
+  --accent-bg:#f2fbf8;
+
+  --up:#4d7c0f;
+  --down:#b91c1c;
+  --waiting:#b45309;
+  --low:#cc4b61;
+
+  --font-display:"Instrument Serif",Georgia,serif;
+  --font-ui:"Inter",system-ui,-apple-system,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,monospace;
+
+  --r:4px;
+  --rb:18px;
+  /* Two greys for the conversation: one for you, one for the agent. Derived from the same stone
+     scale as everything else, so a theme change carries them along. */
+  --you:#e7e5e4;
+  --them:#f5f5f4;
+  --s1:8px; --s2:12px; --s3:16px; --s4:24px; --s5:40px;
+}
+
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f0e0d;
+    --surface:#171514;
+    --border:#292524;
+    --border-hi:#44403c;
+    --text:#e8e3dc;
+    --text-dim:#a8a29e;
+    --text-faint:#78716c;
+    --accent:#52bf9d;
+    --you:#3b3734;
+    --them:#211e1c;
+    --accent-bg:#10201b;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f0e0d;
+  --surface:#171514;
+  --border:#292524;
+  --border-hi:#44403c;
+  --text:#e8e3dc;
+  --text-dim:#a8a29e;
+  --text-faint:#78716c;
+  --accent:#52bf9d;
+  --accent-bg:#10201b;
+  --you:#3b3734;
+  --them:#211e1c;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font:400 13px/1.55 var(--font-ui);
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:var(--s5);
+}
+a{color:inherit;text-decoration:none}
+h1,h2{margin:0;font-weight:400;font-family:var(--font-display);letter-spacing:-0.01em}
+h1{font-size:44px;line-height:1.05}
+h2{font-size:28px;line-height:1.15}
+code{font:400 12px/1.5 var(--font-mono);color:var(--text-dim)}
+
+.label,.readout .k{
+  font-size:11px;line-height:1.3;text-transform:uppercase;letter-spacing:0.06em;
+  color:var(--text-dim);
+}
+.num{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.unit{color:var(--text-faint);font-size:0.82em;margin-left:2px}
+.grow{flex:1}
+
+/* -- status bar ------------------------------------------------------------- */
+
+.bar{
+  position:sticky;top:0;z-index:20;
+  display:flex;align-items:center;gap:var(--s3);
+  padding:var(--s2) var(--s4);
+  background:var(--bg);
+  border-bottom:1px solid var(--border);
+}
+.brand{font-family:var(--font-display);font-size:19px;letter-spacing:-0.01em;white-space:nowrap}
+.brand span{color:var(--text-faint);margin-left:5px}
+
+/* Shown only on an agent's page, where the bar is that agent's header. */
+.barback,.baragent,.barsub,.baract{display:none}
+body.on-agent .barback,body.on-agent .baragent{display:block}
+body.on-agent .barsub{display:block}
+body.on-agent .baract{display:flex;gap:var(--s1);margin-left:auto}
+body.on-agent .brand{display:none}
+body.on-agent .readout{display:none}
+body.on-agent #page-agent .page,body.on-agent #page-agent{padding-top:var(--s2)}
+.barsub{font-family:var(--font-mono);font-size:11px;color:var(--text-faint);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.barback{font-size:22px;line-height:1;color:var(--text-dim);text-decoration:none;
+  padding:0 2px 3px;flex:none}
+.baragent{font-family:var(--font-display);font-size:18px;letter-spacing:-.01em;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+
+.readout{
+  margin-left:auto;display:flex;align-items:baseline;gap:var(--s3);
+  font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:12px;
+  overflow:hidden;
+}
+.readout .m{display:flex;align-items:baseline;gap:6px;white-space:nowrap}
+.readout .k{font-family:var(--font-ui)}
+.readout .v{color:var(--text)}
+/* A value in trouble colours the number, not the panel. */
+.readout .m.low .v{color:var(--low)}
+
+.icon{
+  display:grid;place-items:center;width:30px;height:30px;flex:none;
+  background:none;color:var(--text-dim);
+  border:1px solid var(--border);border-radius:var(--r);cursor:pointer;
+}
+.icon:hover{border-color:var(--border-hi);color:var(--text)}
+
+/* -- page ------------------------------------------------------------------- */
+
+.page{max-width:1180px;margin:0 auto;padding:var(--s5) var(--s4) 0}
+/* An agent's page is a conversation, so it takes more of the window than a grid of cards needs. */
+body.on-agent .page{max-width:1560px}
+
+/* -- the agent list ---------------------------------------------------------- */
+
+#page-agent{display:flex;gap:var(--s4);align-items:flex-start}
+/* Same trap as the chat tab below: an id beats the browser's rule for the hidden attribute, so
+   giving this page a display drew its file row and its terminal under the dashboard's cards. */
+#page-agent[hidden]{display:none}
+.agentmain{flex:1;min-width:0}
+
+.agentlist{
+  flex:none;width:196px;position:sticky;top:76px;
+  display:flex;flex-direction:column;gap:1px;
+}
+.agentlist a{
+  display:flex;align-items:baseline;gap:8px;padding:7px 10px;border-radius:var(--r);
+  text-decoration:none;color:var(--text-dim);font-size:13px;min-width:0;
+}
+.agentlist a:hover{background:var(--them);color:var(--text)}
+.agentlist a.on{background:var(--them);color:var(--text)}
+.agentlist a .dot{
+  width:6px;height:6px;border-radius:50%;background:var(--text-faint);flex:none;
+  align-self:center;
+}
+.agentlist a.awake .dot{background:var(--accent)}
+.agentlist a .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.agentlist a .n{margin-left:auto;font-family:var(--font-mono);font-size:10px;
+  color:var(--text-faint);flex:none}
+.agentlist .head{
+  font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-faint);
+  padding:0 10px 4px;
+}
+.pagehead{display:flex;align-items:flex-end;gap:var(--s3);margin-bottom:var(--s4)}
+/* The agent page. Everything above the conversation is overhead, so it gets one line. */
+.pagehead.thin{align-items:center;margin-bottom:var(--s2)}
+.crumbs{display:flex;align-items:baseline;gap:var(--s2);min-width:0;flex-wrap:wrap}
+.crumbs .back{font-size:13px}
+.crumbs .sep{color:var(--text-faint)}
+.crumbs .here{font-family:var(--font-display);font-size:20px;letter-spacing:-.01em}
+.crumbs .sub{color:var(--text-faint);font-size:11px;font-family:var(--font-mono);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.files.thin{margin-bottom:var(--s2)}
+.drop.small{padding:4px var(--s2);font-size:11px;border-radius:var(--r)}
+.pageact{margin-left:auto;display:flex;gap:var(--s1);align-items:center}
+.who .back{
+  display:inline-block;margin-bottom:var(--s1);
+  font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);
+}
+.who .back:hover{color:var(--accent)}
+.who .sub{color:var(--text-dim);font-size:12px;margin-top:6px;font-family:var(--font-mono)}
+
+.btn{
+  font:500 12px/1 var(--font-ui);
+  padding:9px 13px;height:32px;
+  color:var(--text);background:var(--bg);
+  border:1px solid var(--border);border-radius:var(--r);
+  cursor:pointer;white-space:nowrap;
+}
+.btn:hover{border-color:var(--border-hi)}
+/* A select wearing the bar's button style. Only the height and the platform's own padding refuse to
+   match, so both are stated. The arrow is left alone: it is the one part that says "this opens". */
+select.btn{height:32px;padding:0 6px 0 10px}
+.btn.primary{color:var(--accent);border-color:var(--accent);background:var(--accent-bg)}
+.btn.primary:hover{background:var(--accent);color:var(--bg)}
+.btn.small{height:26px;padding:6px 9px;font-size:11px}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.danger:hover{border-color:var(--low);color:var(--low)}
+
+/* -- cards ------------------------------------------------------------------ */
+
+.grid{display:grid;gap:var(--s2);grid-template-columns:repeat(auto-fill,minmax(310px,1fr))}
+
+.card{
+  /* A hairline border, never a shadow. Shadow is the strongest tell of a template. */
+  border:1px solid var(--border);border-radius:var(--r);
+  background:var(--surface);
+  padding:var(--s2) var(--s3) var(--s3);
+  display:flex;flex-direction:column;gap:var(--s1);
+  min-height:150px;
+}
+.card:hover{border-color:var(--border-hi)}
+.card.picking{border-color:var(--accent);background:var(--accent-bg)}
+.card.source{border-color:var(--accent)}
+
+.card .top{display:flex;align-items:center;gap:var(--s1);min-height:22px}
+/* Deliberately not the .label style. Uppercasing a relative time turns "2m" into "2M", which
+   reads as a quantity rather than a duration, next to a card that also shows token counts. */
+.card .when{font-family:var(--font-mono);font-size:11px;color:var(--text-faint);white-space:nowrap}
+.card .nm{font-size:15px;font-weight:500;letter-spacing:-0.005em}
+.card .nm a:hover{color:var(--accent)}
+.card .role{
+  font-size:10px;text-transform:uppercase;letter-spacing:0.06em;
+  color:var(--accent);border:1px solid var(--accent);border-radius:2px;padding:1px 4px;
+}
+
+/* 6px, green for alive and warm grey for asleep. Never red for asleep: asleep is not an
+   error, and a red dot for a normal state teaches the eye to ignore red. */
+.dot{width:6px;height:6px;border-radius:50%;flex:none;background:var(--text-faint)}
+.dot.green{background:var(--up)}
+
+/* Working is motion, not colour. Motion is reserved for it, so movement always means
+   something is happening. */
+.pulse{width:6px;height:6px;border-radius:50%;background:var(--accent);flex:none;
+  animation:breathe 1.25s ease-in-out infinite}
+@keyframes breathe{0%,100%{opacity:.25;transform:scale(.75)}50%{opacity:1;transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.pulse{animation:none;opacity:.9}}
+
+.card .said{
+  color:var(--text-dim);font-size:12.5px;line-height:1.5;
+  flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;
+}
+.card .said.none{color:var(--text-faint);font-style:italic}
+
+.card .rows{display:flex;flex-direction:column;border-top:1px solid var(--border);padding-top:var(--s1)}
+.card .rows .r{display:flex;align-items:baseline;gap:var(--s1);min-height:20px}
+.card .rows .r .v{margin-left:auto;font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  font-size:12px;color:var(--text-dim)}
+.card .rows .r .v.low{color:var(--low)}
+
+.card .act{display:flex;gap:6px;align-items:center;margin-top:2px}
+.card .alarm{color:var(--waiting);font-size:11px;font-family:var(--font-mono)}
+/* Amber, because an undelivered message is pending rather than wrong. Red here would say something
+   broke, and nothing has: the agent is asleep, which is a normal state.
+
+   The word is "undelivered", not "held". "1 held" was the first attempt and the operator had to ask
+   what it meant, which is the only test a label has to pass. Held is the internal name for the
+   mechanism; the card says what happened to the message. */
+.card .held{
+  color:var(--waiting);font-family:var(--font-mono);font-size:10px;
+  border:1px solid currentColor;border-radius:2px;padding:1px 4px;white-space:nowrap;
+}
+
+.card.skeleton{gap:var(--s2);justify-content:center}
+/* Skeletons, not spinners, wherever the shape is known in advance. */
+.skel{display:block;height:11px;border-radius:2px;background:var(--border);
+  animation:fade 1.4s ease-in-out infinite}
+.skel.w40{width:40%}.skel.w60{width:60%}.skel.w90{width:90%}
+@keyframes fade{0%,100%{opacity:.55}50%{opacity:1}}
+
+/* -- cords ------------------------------------------------------------------ */
+
+.cords{margin-bottom:var(--s3);border:1px solid var(--border);border-radius:var(--r)}
+.cords .c{display:flex;align-items:center;gap:var(--s2);padding:var(--s1) var(--s3);
+  min-height:36px;border-bottom:1px solid var(--border);font-size:12px}
+.cords .c:last-child{border-bottom:none}
+.cords .kind{font-size:10px;text-transform:uppercase;letter-spacing:0.06em;
+  padding:1px 5px;border-radius:2px;border:1px solid currentColor}
+.cords .kind.transfer{color:var(--accent)}
+.cords .kind.call{color:var(--waiting)}
+.cords .path{font-family:var(--font-mono);color:var(--text)}
+.cords .inst{color:var(--text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.cords .st{font-family:var(--font-mono);font-size:11px;color:var(--text-dim)}
+.cords .st.running{color:var(--accent)}
+.cords .st.timed_out{color:var(--low)}
+.cords .st.failed{color:var(--down)}
+.cords .st.completed{color:var(--up)}
+
+/* -- empty states ----------------------------------------------------------- */
+
+.empty{
+  border:1px solid var(--border);border-radius:var(--r);
+  padding:var(--s5) var(--s4);max-width:660px;
+}
+.empty.small{padding:var(--s4)}
+.empty h2{margin-bottom:var(--s2)}
+.empty p{color:var(--text-dim);margin:0 0 var(--s2);max-width:56ch}
+.empty .aside{color:var(--text-faint);font-size:12px}
+.empty .btn{margin-top:var(--s2)}
+
+/* -- tabs and terminal ------------------------------------------------------ */
+
+.tabs{display:flex;gap:var(--s4);border-bottom:1px solid var(--border);margin-bottom:var(--s3)}
+.tab{
+  background:none;border:none;cursor:pointer;padding:0 0 10px;
+  font:500 12px/1 var(--font-ui);text-transform:uppercase;letter-spacing:0.06em;
+  color:var(--text-dim);border-bottom:1px solid transparent;margin-bottom:-1px;
+}
+.tab.on{color:var(--text);border-bottom-color:var(--accent)}
+
+.termwrap{border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.termbar{display:flex;align-items:center;gap:var(--s1);padding:6px var(--s2);
+  border-bottom:1px solid var(--border);min-height:36px}
+#term{height:min(62vh,620px);padding:var(--s1) 0 var(--s1) var(--s2)}
+#term .xterm{height:100%}
+.xterm-viewport::-webkit-scrollbar{width:9px}
+.xterm-viewport::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:9px}
+
+.say{display:flex;gap:var(--s1);margin-top:var(--s2);align-items:flex-end}
+.say textarea{
+  flex:1;resize:none;font:400 13px/1.5 var(--font-ui);
+  color:var(--text);background:var(--bg);
+  border:1px solid var(--border);border-radius:var(--r);
+  padding:8px 10px;max-height:180px;
+}
+.say textarea:focus{outline:none;border-color:var(--accent)}
+
+#view-holder iframe{
+  width:100%;height:min(70vh,700px);border:1px solid var(--border);border-radius:var(--r);
+  background:var(--bg);display:block;
+}
+
+/* -- dialogs ---------------------------------------------------------------- */
+
+dialog{
+  border:1px solid var(--border-hi);border-radius:var(--r);
+  background:var(--bg);color:var(--text);padding:var(--s4);width:min(460px,92vw);
+  /* A tall dialog on a short screen used to put its own buttons below the fold, with no way out but
+     reloading the page. It scrolls inside itself now. */
+  max-height:88dvh;overflow-y:auto;position:relative;
+}
+.dlg-x{
+  position:absolute;top:6px;right:8px;width:34px;height:34px;border:none;background:none;
+  color:var(--text-faint);font-size:24px;line-height:1;cursor:pointer;border-radius:var(--r);
+}
+.dlg-x:hover,.dlg-x:active{color:var(--text);background:var(--surface)}
+dialog::backdrop{background:rgba(28,25,23,.45)}
+dialog h2{margin-bottom:var(--s3)}
+dialog label{display:block;margin-bottom:var(--s2);font-size:11px;text-transform:uppercase;
+  letter-spacing:0.06em;color:var(--text-dim)}
+dialog input,dialog select,dialog textarea{
+  display:block;width:100%;margin-top:5px;
+  font:400 13px/1.5 var(--font-ui);color:var(--text);background:var(--bg);
+  border:1px solid var(--border);border-radius:var(--r);padding:7px 9px;
+}
+dialog input:focus,dialog select:focus,dialog textarea:focus{outline:none;border-color:var(--accent)}
+dialog .row{display:flex;gap:var(--s2)}
+dialog .row label{flex:1}
+dialog .note{color:var(--text-faint);font-size:12px;margin:0 0 var(--s3)}
+/* -- the chat --------------------------------------------------------------- */
+
+/* Built for a phone first. Bubbles rather than rows, because alignment and colour say who spoke
+   without spending a line on a label, and a phone has no lines to spare. */
+
+/* The height is set in script from this element's own measured top, because a constant here was
+   always going to be wrong: the overhead above it came to 258px on a laptop and 307px on a phone,
+   where the breadcrumb wraps. This value is only the fallback before script runs. */
+#tab-chat{display:flex;flex-direction:column;gap:var(--s2);overflow:hidden;
+  height:calc(100dvh - 300px);min-height:220px}
+/* An id beats the browser's own rule for the hidden attribute, so the closed chat tab was still
+   being drawn under the terminal: 600px of page that scrolled for nothing. Say it again here. */
+#tab-chat[hidden]{display:none}
+/* While the chat is open nothing but the log scrolls. */
+body.chatting,body.chatting > *{overscroll-behavior:none}
+html:has(body.chatting),body.chatting{overflow:hidden;height:100%}
+.chatwrap{display:flex;flex-direction:column;min-height:0;flex:1 1 0}
+/* The cards may shrink and scroll; the keys and the bar never shrink, because the point of all this
+   is that the box you type into is always there. Several asks may wait at once, so the stack scrolls
+   as a whole and each card scrolls inside itself as well. */
+#chatpending{flex:0 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  display:flex;flex-direction:column;gap:var(--s1)}
+#chatpending:empty{display:none}
+#chatkeys,#chatsay{flex:none}
+
+.chatlog{flex:1;min-height:0;overflow-y:auto;padding:var(--s2) 0;
+  display:flex;flex-direction:column;gap:var(--s2);-webkit-overflow-scrolling:touch}
+/* Tighter between your bubble and the answer under it than between separate exchanges. */
+.chatlog .msg.operator + .msg.agent{margin-top:2px}
+.chatnote{padding:4px 2px 0;font-size:11px;color:var(--text-faint)}
+
+/* Only your own messages get a bubble. What the agent says is the page, not a card on it: the same
+   asymmetry the Claude app uses, and the reason is that one side is short and the other is not. A
+   bubble around four paragraphs is a box drawn around the thing you came to read. */
+.msg{display:flex;flex-direction:column;max-width:100%}
+.msg .who{display:none}
+.msg .body{line-height:1.6;overflow-wrap:anywhere}
+/* The renderer now emits real blocks, so the body no longer keeps every newline of the source: a
+   blank line between two paragraphs became two <p>, and honouring it as well would double the gap.
+   A <pre> sets its own pre inside. */
+.msg .body > :first-child{margin-top:0}
+.msg .body > :last-child{margin-bottom:0}
+.msg .body p{margin:0 0 8px}
+.msg .body h3,.msg .body h4,.msg .body h5,.msg .body h6{
+  margin:14px 0 6px;line-height:1.3;font-weight:600}
+.msg .body h3{font-size:1.15em}
+.msg .body h4{font-size:1.05em}
+.msg .body h5,.msg .body h6{font-size:1em;color:var(--text-dim)}
+.msg .body ul,.msg .body ol{margin:0 0 8px;padding-left:1.4em}
+.msg .body li{margin:2px 0}
+.msg .body li>p{margin:0}
+.msg .body blockquote{margin:0 0 8px;padding:2px 0 2px 12px;
+  border-left:2px solid var(--border);color:var(--text-dim)}
+.msg .body hr{border:0;border-top:1px solid var(--border);margin:12px 0}
+.msg .body a{color:var(--accent);text-decoration:underline;text-underline-offset:2px}
+/* A table can be wider than the column, so it scrolls inside its own box rather than pushing the
+   whole conversation sideways. */
+.msg .body .tablewrap{overflow-x:auto;margin:0 0 8px;max-width:100%}
+.msg .body table{border-collapse:collapse;font-size:12.5px}
+.msg .body th,.msg .body td{border:1px solid var(--border);padding:5px 9px;text-align:left;
+  vertical-align:top}
+.msg .body th{background:var(--them);font-weight:600;white-space:nowrap}
+
+.msg.operator{align-self:flex-end;max-width:80%}
+.msg.operator .body{padding:9px 14px;border-radius:var(--rb);background:var(--you)}
+/* Consecutive bubbles from you tuck together, the way a phone does it. */
+.msg.operator + .msg.operator .body{border-top-right-radius:6px}
+
+.msg.agent{align-self:stretch}
+/* No character cap. A 74 character measure is the textbook advice and the operator asked twice for
+   the text to run wider, which is his call to make: he is the one reading it. The page's own width
+   below is the only limit. */
+.msg.agent .body{padding:2px 2px 6px}
+.msg.live .body{color:var(--text-dim)}
+/* Yours, before the record has it. Faded rather than a spinner: the message is readable, and the
+   only thing in doubt is whether the agent has it yet. */
+.msg.operator.echo .body{opacity:.6}
+.msg.echo .mark{font-size:10px;color:var(--text-faint);padding:2px 8px 0;align-self:flex-end}
+.msg .body code{font-family:var(--font-mono);font-size:.9em}
+.msg .body pre{font-family:var(--font-mono);font-size:11.5px;background:var(--them);
+  border-radius:var(--r);padding:var(--s1);overflow-x:auto;white-space:pre;margin:6px 0}
+.msg.operator .body pre{background:var(--bg)}
+
+/* A tool call is one dim line. Nearly three quarters of a session's characters are tool output, so
+   it earns a line and not a card. Tap it for the rest. */
+.tool{align-self:flex-start;max-width:92%;font-size:11.5px;color:var(--text-faint)}
+.tool summary{cursor:pointer;list-style:none;display:flex;gap:6px;align-items:baseline;
+  padding:1px 4px;white-space:nowrap;overflow:hidden}
+.tool summary::-webkit-details-marker{display:none}
+.tool .name{font-family:var(--font-mono);color:var(--text-dim)}
+.tool.failed .name{color:var(--down)}
+.tool .gist{font-family:var(--font-mono);overflow:hidden;text-overflow:ellipsis}
+.tool pre{margin:2px 0 4px;padding:var(--s1);background:var(--bg);border-radius:var(--r);
+  font-family:var(--font-mono);font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere;
+  max-height:20em;overflow-y:auto;color:var(--text-dim)}
+
+/* The turn still being written, plus the calls it is making, as one element. It is dropped whole
+   when the turn settles, and the record's own rows take over from there. */
+#chatlive{display:flex;flex-direction:column;gap:var(--s2);min-width:0}
+/* A call happening right now. The same one line as a settled one, without the fold: there is
+   nothing to open yet, only a name and what it is doing. */
+.tool.running{display:flex;gap:6px;align-items:baseline;padding:1px 4px;
+  white-space:nowrap;overflow:hidden}
+
+/* Three dots, while the agent is working and has written nothing yet. The rule that hides them is
+   written against the class and the attribute together, never against the id. An id rule beat
+   [hidden] once before and the dots bobbed on under a finished answer. */
+.thinking{display:flex;gap:5px;flex:none;padding:6px 4px 2px}
+.thinking[hidden]{display:none}
+.thinking span{width:7px;height:7px;border-radius:50%;background:var(--text-faint);
+  animation:bob 1.1s infinite}
+.thinking span:nth-child(2){animation-delay:.15s}
+.thinking span:nth-child(3){animation-delay:.3s}
+@keyframes bob{0%,60%,100%{opacity:.3;transform:translateY(0)}
+  30%{opacity:1;transform:translateY(-4px)}}
+
+/* A notice from the server, not something either side said. Centred and dim, so it reads as
+   furniture rather than as a message. Scoped to its own box, because `note` is already the class a
+   dialog uses for its explaining line and those must stay left aligned. */
+#chatnotes{flex:none;padding:4px 2px 0}
+#chatnotes[hidden]{display:none}
+#chatnotes .note{text-align:center;font-size:11.5px;color:var(--text-faint);padding:2px 0;
+  opacity:1;transition:opacity .6s ease}
+/* On its way out. The height goes with the element a moment later, so the composer does not
+   jump under a thumb that is already reaching for it. */
+#chatnotes .note.going{opacity:0}
+
+/* An answered question, from the record. */
+.ask{align-self:flex-start;max-width:88%;background:var(--them);border-radius:var(--rb);
+  padding:10px 14px}
+.ask .q{margin-bottom:6px}
+.ask ol{margin:0;padding-left:1.2em;font-size:12.5px;color:var(--text-dim)}
+
+/* An ask waiting for an answer, either kind. Tap a row to answer it. */
+/* Never taller than its share of the screen, and it scrolls inside itself rather than clipping. The
+   first version cut the question in half and hid option one entirely. */
+.pending{flex:none;background:var(--them);border-radius:var(--rb);border:1px solid var(--border);
+  max-height:min(38dvh,340px);overflow-y:auto;-webkit-overflow-scrolling:touch}
+/* Faded while an answer is in flight, with every button in the card refused. */
+.pending.busy{opacity:.6}
+/* The question stays put while the options scroll under it, because it is the thing you are
+   answering and it must not scroll away. */
+.pending .q{padding:11px 14px 8px;font-weight:500;line-height:1.45;
+  position:sticky;top:0;background:var(--them);z-index:1}
+.pending .opt{display:flex;gap:10px;width:100%;text-align:left;background:none;border:none;
+  border-top:1px solid var(--border);padding:11px 14px;cursor:pointer;font:inherit;
+  color:var(--text);align-items:baseline;min-height:44px}
+.pending .opt:active{background:var(--you)}
+.pending .opt.on{box-shadow:inset 3px 0 0 var(--accent)}
+.pending .opt .txt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.pending .opt b{font-weight:500}
+.pending .opt em{font-style:normal;font-size:12px;color:var(--text-dim)}
+.pending .hint{padding:7px 14px;font-size:11px;color:var(--text-faint)}
+
+/* The tool a permission ask is about, named in mono because it is a name from the engine and not a
+   word of ours. */
+.pending .k{font-family:var(--font-mono);color:var(--accent)}
+/* The command, in full. It wraps inside the card, so a long one never pushes the page sideways and
+   never hides its own tail behind a cut. */
+.pending pre{margin:0;padding:0 14px 10px;font-family:var(--font-mono);font-size:11.5px;
+  color:var(--text-dim);white-space:pre-wrap;overflow-wrap:anywhere}
+.pending .act{display:flex;gap:var(--s1);padding:0 14px 12px}
+.pending .act button{flex:1;min-height:44px;border:1px solid var(--border);border-radius:var(--rb);
+  background:var(--bg);color:var(--text);font:inherit;font-weight:500;cursor:pointer}
+.pending .act .yes{background:var(--accent);color:#fff;border-color:var(--accent)}
+.pending .act button:active{opacity:.7}
+
+/* One block per question. What the question is about sits above it, small, because it is a label
+   and not the thing being asked. */
+.pending .qb + .qb{border-top:1px solid var(--border)}
+.pending .hd{padding:10px 14px 0;font-size:11px;color:var(--text-faint)}
+/* Anything the options do not cover. A text box and a Send, under the last option. */
+.pending .free{display:flex;gap:6px;padding:10px 14px 12px;border-top:1px solid var(--border)}
+.pending .free input{flex:1;min-width:0;min-height:40px;padding:0 12px;border-radius:var(--rb);
+  border:1px solid var(--border);background:var(--bg);color:var(--text);font:inherit;font-size:13px}
+.pending .free input:focus{outline:none;border-color:var(--accent)}
+.pending .free button{flex:none;min-height:40px;padding:0 14px;border-radius:var(--rb);border:none;
+  background:var(--accent);color:#fff;font:inherit;font-weight:500;cursor:pointer}
+
+/* The input, one pill with its controls inside it. */
+.say.bar{display:flex;align-items:flex-end;gap:6px;background:var(--them);
+  border:1px solid var(--border);border-radius:26px;padding:5px 6px 5px 14px}
+.say.bar textarea{flex:1;border:none;background:none;resize:none;font:inherit;color:var(--text);
+  padding:8px 0;max-height:7em;line-height:1.4}
+.say.bar textarea:focus{outline:none}
+/* The permission mode, in the composer pill beside the keys. A select rather than three buttons:
+   the names are long, a phone opens a select as a full screen list which is the easiest thumb target
+   there is, and the model picker on the agent bar is a select for the same reason. Mono, because
+   these are names the engine knows and not words of ours. */
+.permmode{flex:none;max-width:112px;height:40px;border:1px solid var(--border);border-radius:20px;
+  background:var(--bg);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;
+  padding:0 6px 0 10px;cursor:pointer}
+.permmode:focus{outline:none;border-color:var(--accent)}
+
+.icon.round{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;
+  border:none;background:none;color:var(--text-dim);cursor:pointer;flex:none}
+.icon.round:active{background:var(--you)}
+.icon.round.send{background:var(--accent);color:#fff}
+.icon.round svg{width:17px;height:17px}
+
+/* The three controls a phone keyboard cannot give you. */
+.keys{display:none;gap:6px;padding:0 2px 6px;justify-content:flex-end;flex-wrap:wrap}
+.keys.open{display:flex}
+.keys button{min-width:44px;height:38px;padding:0 8px;border-radius:var(--rb);
+  border:1px solid var(--border);background:var(--them);color:var(--text);
+  font-family:var(--font-mono);font-size:12px;cursor:pointer;flex:none}
+.keys button:active{background:var(--you)}
+
+/* -- wires ------------------------------------------------------------------ */
+
+#wires{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:40}
+#wires path{fill:none;stroke-linecap:round}
+/* A cable that has finished stays a while as a faint trace. A transfer lives about two seconds and
+   would otherwise be missed entirely, which makes the platform look like it did nothing. */
+#wires path.done{opacity:.28}
+#wires path.live{opacity:.9}
+#wires path.pending{opacity:.5;stroke-dasharray:5 6}
+#wires circle{fill:var(--accent)}
+
+/* The line that says how many cards this view is hiding. Deliberately plain: it is a fact about
+   the page, not another card. */
+.quiet-note{grid-column:1/-1;color:var(--text-faint);font-size:12px;padding:var(--s1) var(--s2)}
+
+dialog .pick{display:flex;align-items:center;gap:var(--s2);text-transform:none;font-size:13px;
+  letter-spacing:0;color:var(--text);margin-bottom:var(--s1)}
+dialog .pick input{width:auto;margin:0}
+dialog .dlgact{display:flex;justify-content:flex-end;align-items:center;gap:var(--s1);margin-top:var(--s3)}
+dialog .dlgact .grow{flex:1}
+
+.seg{display:flex;margin-bottom:var(--s2)}
+.seg button{
+  flex:1;font:500 12px/1 var(--font-ui);padding:9px;cursor:pointer;
+  color:var(--text-dim);background:var(--bg);border:1px solid var(--border);
+}
+.seg button:first-child{border-radius:var(--r) 0 0 var(--r)}
+.seg button:last-child{border-radius:0 var(--r) var(--r) 0;border-left:none}
+.seg button.on{color:var(--accent);border-color:var(--accent);background:var(--accent-bg)}
+
+.toast{
+  position:fixed;left:50%;bottom:var(--s4);transform:translateX(-50%);
+  border:1px solid var(--border-hi);border-radius:var(--r);background:var(--bg);
+  padding:var(--s1) var(--s3);font-size:12.5px;z-index:50;max-width:min(560px,92vw);
+}
+.toast.bad{border-color:var(--low);color:var(--low)}
+
+@media (max-width:640px){
+  .page{padding:var(--s4) var(--s3) 0}
+  h1{font-size:32px}
+  .bar{padding:var(--s1) var(--s3)}
+  dialog{padding:var(--s3)}
+  #term{height:56vh}
+  .crumbs .sub{display:none}
+
+  /* A phone has no room for the path or the buttons either. The buttons stay reachable from the
+     dashboard, and the path is not something you read on a phone. */
+  .agentlist{display:none}
+  #page-agent{display:block}
+  body.on-agent .barsub{display:none}
+  body.on-agent .baract{display:none}
+  body.on-agent #files{display:none}
+  body.on-agent .tabs{margin-bottom:var(--s1)}
+  /* A phone gives the box you type into the room instead. The three names still read apart at a
+     glance: no two of them start with the same letter. */
+  .permmode{max-width:86px;font-size:10.5px;padding:0 4px 0 7px}
+}
+
+/* Shown only when an agent has written more pages than the console will display. A silent cut reads
+   as a page the agent failed to write, which sends you looking in the wrong place. */
+.tabnote{
+  font-family:var(--font-mono);font-size:10px;color:var(--waiting);
+  align-self:center;padding-bottom:10px;white-space:nowrap;
+}
+/* Many pages should scroll rather than wrap into a second row of tabs that pushes the content down
+   every time you open a busy agent. */
+.tabs{overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+
+/* -- files ------------------------------------------------------------------ */
+
+.files{
+  display:flex;flex-wrap:wrap;align-items:center;gap:var(--s1);
+  margin-bottom:var(--s3);
+}
+.fileset{display:flex;flex-wrap:wrap;gap:6px}
+/* A file reads as a thing you can take, so it is a bordered chip with its size in mono. Not a list:
+   most agents offer one or two files and a list of two items is a heading looking for a purpose. */
+.fileset a{
+  display:inline-flex;align-items:center;gap:8px;
+  border:1px solid var(--border);border-radius:var(--r);
+  padding:5px 9px;font-size:12px;
+}
+.fileset a:hover{border-color:var(--accent);color:var(--accent)}
+.fileset a .sz{font-family:var(--font-mono);font-size:11px;color:var(--text-faint)}
+.fileset a:hover .sz{color:var(--accent)}
+.fileset .drop-x{
+  border:none;background:none;color:var(--text-faint);cursor:pointer;
+  font:400 14px/1 var(--font-ui);padding:0 0 0 2px;
+}
+.fileset .drop-x:hover{color:var(--low)}
+
+/* The send target. A label wrapping a hidden input, so a tap opens the picker on a phone and a
+   drag works on a laptop. Dashed, because dashed means "put something here" and nothing else in
+   this interface is dashed. */
+.drop{
+  display:inline-flex;align-items:center;gap:8px;cursor:pointer;
+  border:1px dashed var(--border-hi);border-radius:var(--r);
+  padding:5px 11px;font-size:12px;color:var(--text-dim);
+}
+.drop:hover,.drop.over{border-color:var(--accent);color:var(--accent);background:var(--accent-bg)}
+.drop.busy{border-style:solid;color:var(--accent)}
+
+/* -- undelivered messages --------------------------------------------------- */
+
+.heldlist{
+  max-height:min(46vh,380px);overflow-y:auto;
+  border:1px solid var(--border);border-radius:var(--r);margin-bottom:var(--s3);
+}
+.heldlist .h{
+  display:flex;gap:var(--s2);align-items:flex-start;
+  padding:var(--s2);border-bottom:1px solid var(--border);
+}
+.heldlist .h:last-child{border-bottom:none}
+.heldlist .h .txt{flex:1;font-size:12.5px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.heldlist .h .ts{
+  font-family:var(--font-mono);font-size:10px;color:var(--text-faint);
+  white-space:nowrap;padding-top:2px;
+}
+.heldlist .h .x{
+  border:1px solid var(--border);border-radius:var(--r);background:none;cursor:pointer;
+  color:var(--text-dim);font:400 13px/1 var(--font-ui);padding:4px 7px;flex:none;
+}
+.heldlist .h .x:hover{border-color:var(--low);color:var(--low)}
+.heldlist .none{padding:var(--s3);color:var(--text-faint);font-size:12.5px}
+
+/* The count on a card is a button now, so it has to look pressable without becoming loud. */
+.card .held{cursor:pointer;font-family:var(--font-mono)}
+.card button.held:hover{background:var(--accent-bg)}

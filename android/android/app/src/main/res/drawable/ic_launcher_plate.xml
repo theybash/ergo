@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The icon's plate: the same soft top-lit grey other apps sit on in dark mode, not flat black. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient android:angle="270" android:startColor="#2C2C2C" android:centerColor="#212121" android:endColor="#171717" android:type="linear"/>
+</shape>

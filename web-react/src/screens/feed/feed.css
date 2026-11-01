@@ -1,0 +1,73 @@
+/* The feed, in the X style of sample A (:8444/feed-samples/). Posts sit on the page between thin
+   lines, a face on the left and the words beside it. The quoted card and the headline card carry
+   the colour; the chrome stays quiet. */
+
+.fd { max-width: 620px; margin: 0 auto; padding-bottom: 96px; }
+.fd-head { font: 400 30px/1.1 var(--font-display); padding: 18px 16px 10px; margin: 0; border-bottom: 1px solid var(--border); }
+.fd-empty { color: var(--text-faint); font-size: 14px; line-height: 1.5; padding: 24px 16px; margin: 0; }
+
+.fd-post { display: flex; gap: 12px; padding: 14px 16px 10px; border-bottom: 1px solid var(--border); }
+.fd-face { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 0; display: grid; place-items: center; font: 600 16px var(--font-ui); color: #0b0a09; cursor: pointer; padding: 0; }
+.fd-body { flex: 1; min-width: 0; }
+.fd-who { display: flex; gap: 6px; align-items: baseline; flex-wrap: nowrap; margin: 0; font-size: 15px; white-space: nowrap; overflow: hidden; }
+.fd-who b { font-weight: 600; color: var(--text); }
+.fd-kind { flex: none; align-self: center; display: grid; color: var(--text-faint); font-style: normal; }
+.fd-kind svg { width: 15px; height: 15px; }
+.fd-who span { color: var(--text-faint); font-size: 14px; overflow: hidden; text-overflow: ellipsis; }
+.fd-text { margin: 3px 0 0; font-size: 15px; line-height: 1.45; color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; }
+
+.fd-quote { margin-top: 10px; border: 1px solid var(--border-hi); border-radius: 16px; overflow: hidden; }
+.fd-src { display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; color: inherit; text-decoration: none; }
+.fd-host { font-size: 13px; color: var(--text-dim); }
+button.fd-src { width: 100%; border: 0; background: none; font: inherit; text-align: left; cursor: pointer; }
+.fd-title { font-size: 15px; font-weight: 600; line-height: 1.3; color: var(--text); }
+.fd-meta { font-size: 13px; color: var(--text-faint); }
+.fd-draft { border-top: 1px solid var(--border); padding: 10px 12px 12px; background: var(--surface); }
+.fd-draft.alone { border-top: 0; }
+.fd-lbl { margin: 0 0 4px; font-size: 12px; color: var(--text-faint); }
+.fd-lbl b { color: var(--text-dim); font-weight: 500; }
+.fd-words { margin: 0; font-size: 14px; line-height: 1.45; color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; }
+
+.fd-card { margin-top: 10px; border: 1px solid var(--border-hi); border-radius: 16px; padding: 18px 16px; background: var(--surface); }
+.fd-headline { margin: 0; font: 400 28px/1.08 var(--font-display); color: var(--text); overflow-wrap: anywhere; }
+.fd-sub { margin: 8px 0 0; font-size: 13px; line-height: 1.45; color: var(--text-dim); }
+.fd-go { display: inline-block; margin-top: 10px; font-size: 14px; color: var(--accent); text-decoration: none; }
+
+.fd-acts { display: flex; justify-content: space-between; max-width: 360px; margin-top: 8px; }
+.fd-acts button, .fd-acts a { display: flex; gap: 5px; align-items: center; padding: 6px 0; background: none; border: 0; color: var(--text-faint); font: 13px var(--font-ui); text-decoration: none; cursor: pointer; }
+.fd-acts svg { width: 18px; height: 18px; }
+.fd-acts .on { color: var(--accent); }
+.fd-acts button:active, .fd-acts a:active { color: var(--text); }
+
+.fd-toast { position: fixed; left: 50%; bottom: 92px; transform: translateX(-50%) translateY(16px); opacity: 0; pointer-events: none; background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 12px; font-size: 14px; font-weight: 500; transition: opacity .2s, transform .2s; z-index: 40; }
+.fd-toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Media, like X: one fills the width, two sit side by side, three put one tall on the left, four
+   make a square of four. */
+.fd-media { display: grid; gap: 2px; margin-top: 10px; border: 1px solid var(--border-hi); border-radius: 16px; overflow: hidden; background: var(--border); }
+.fd-media img, .fd-media video { display: block; width: 100%; height: 100%; object-fit: cover; background: var(--surface); }
+.fd-media a { display: block; min-height: 0; }
+.fd-media.n1 img { height: auto; max-height: 520px; }
+.fd-media.n1 video { height: auto; max-height: 520px; object-fit: contain; background: #000; }
+.fd-media.n2 { grid-template-columns: 1fr 1fr; aspect-ratio: 16 / 9; }
+.fd-media.n3 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; aspect-ratio: 16 / 9; }
+.fd-media.n3 > :first-child { grid-row: span 2; }
+.fd-media.n4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; aspect-ratio: 16 / 9; }
+.fd-media.n2 video, .fd-media.n3 video, .fd-media.n4 video { object-fit: cover; }
+
+/* The page's own picture on top of the link card. */
+.fd-src { padding: 0 0 10px; }
+.fd-src > :not(.fd-pic) { padding: 0 12px; }
+.fd-src > .fd-host { padding-top: 10px; }
+.fd-pic { display: block; width: 100%; aspect-ratio: 1.91 / 1; object-fit: cover; background: var(--surface); border-bottom: 1px solid var(--border); }
+
+/* The x that hides a post, at the end of the name line. */
+.fd-who .fd-x { margin-left: auto; flex: none; display: grid; place-items: center; width: 28px; height: 28px; margin-top: -4px; padding: 0; background: none; border: 0; color: var(--text-faint); cursor: pointer; }
+.fd-who .fd-x svg { width: 16px; height: 16px; }
+.fd-who .fd-x:active { color: var(--text); }
+.fd-toast { pointer-events: auto; display: flex; gap: 14px; align-items: center; }
+.fd-toast:not(.on) { pointer-events: none; }
+.fd-toast button { background: none; border: 0; padding: 0; color: var(--accent); font: 600 14px var(--font-ui); cursor: pointer; }
+
+/* The same post in the agent's chat: framed, no face, no line under it. */
+.fd-post.in-chat { border: 1px solid var(--border-hi); border-radius: 18px; padding: 12px 14px 6px; margin: 10px 0; max-width: 560px; }

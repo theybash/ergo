@@ -1,0 +1,14 @@
+{
+  "name": "ergo-whatsapp",
+  "private": true,
+  "version": "1.0.0",
+  "description": "The WhatsApp bridge for Ergo. It reads chosen chats, and sends only what the owner taps Send on, when sending is on.",
+  "type": "module",
+  "main": "bridge.mjs",
+  "scripts": {
+    "start": "node bridge.mjs"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "7.0.0-rc14"
+  }
+}

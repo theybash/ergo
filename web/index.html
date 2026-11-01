@@ -1,0 +1,350 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Command center</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<!-- The state dot, which is the console's one recurring shape. Inline so there is no second request
+     and no 404 in the log for a file nobody remembered to add. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='4' fill='%23248064'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/vendor/xterm.css">
+<link rel="stylesheet" href="/app.css">
+
+<header class="bar">
+  <a class="brand" href="#/">Command<span>center</span></a>
+
+  <!-- On an agent, the bar becomes that agent's header: back, name, path, and its actions. The row
+       that used to hold all of this is gone, and its space belongs to the conversation. -->
+  <a class="barback" href="#/" aria-label="All agents">&lsaquo;</a>
+  <span class="baragent" id="a-name"></span>
+  <span class="barsub" id="a-sub"></span>
+  <div class="baract pageact" id="a-actions"></div>
+
+  <div class="readout" id="readout">
+    <span class="skel w40"></span><span class="skel w40"></span><span class="skel w40"></span>
+  </div>
+
+  <button class="icon" id="theme" title="Light, dark, or follow the system">
+    <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><use href="#i-system"/></svg>
+  </button>
+</header>
+
+<!-- The wires. One layer over everything, drawn in viewport coordinates, and it never takes a
+     click: the cards underneath are what you tap. Fixed rather than absolute so scrolling needs no
+     arithmetic, because getBoundingClientRect already answers in these coordinates. -->
+<svg id="wires" aria-hidden="true"></svg>
+
+<main id="main">
+
+  <!-- dashboard -->
+  <section class="page" id="page-dash">
+    <div class="pagehead">
+      <h1>Agents</h1>
+      <div class="pageact">
+        <button class="btn" id="show-hidden" hidden>Hidden</button>
+        <!-- Work, demo or personal. It changes what is on this page and nothing else: not Telegram,
+             not whether a job runs. The label is the current one, so there is never a mode you are
+             in without being told. -->
+        <button class="btn" id="viewmode" title="Which agents this page shows">Personal</button>
+        <button class="btn" id="new-job">Schedule</button>
+        <button class="btn primary" id="new-agent">New agent</button>
+      </div>
+    </div>
+
+    <div class="cords" id="cords" hidden></div>
+
+    <!-- The schedule. It lives on the dashboard rather than a page of its own because the whole
+         list is three lines long, and the one thing it has to offer is the rerun button: a missed
+         job never runs itself late, so the offer to run it has to land somewhere. -->
+    <div class="cords jobs" id="jobs" hidden></div>
+
+    <!-- Network health, in pairs. One latency figure is not a diagnosis: 90ms out with 1ms to the
+         router means the line is slow, and 90ms to both means the router is the problem. The speed
+         test has a button rather than a timer, because it costs bandwidth on the thing it measures. -->
+    <div class="cords net" id="net" hidden></div>
+
+    <div class="grid" id="cards">
+      <div class="card skeleton"><span class="skel w60"></span><span class="skel w90"></span><span class="skel w40"></span></div>
+      <div class="card skeleton"><span class="skel w40"></span><span class="skel w90"></span><span class="skel w60"></span></div>
+    </div>
+
+    <!-- Empty states get real effort. A new console with no agents is the first thing seen. -->
+    <div class="empty" id="empty" hidden>
+      <h2>Nothing is running yet.</h2>
+      <p>An agent is one Claude Code conversation, living in a folder on this laptop. Start one
+         here and it appears as a card, awake, with its terminal streamed to this page.</p>
+      <p class="aside">A session you started by hand can add itself instead. Ask it to post its
+         own session id to <code>/api/agents/register</code> and it will show up grey, ready to
+         be woken.</p>
+      <button class="btn primary" id="new-agent-2">New agent</button>
+    </div>
+  </section>
+
+  <!-- one agent -->
+  <section class="page" id="page-agent" hidden>
+
+    <!-- Every agent, so switching is one click rather than a trip back to the dashboard. Hidden on a
+         narrow screen, where the conversation needs the whole width and the back chevron is enough. -->
+    <nav class="agentlist" id="agentlist" aria-label="Agents"></nav>
+
+    <div class="agentmain">
+
+    <!-- Filled in from the agent's own pages, then Terminal last. An agent writes as many screens
+         as it needs and the tabs follow, so the navigation belongs to the platform and each page
+         belongs to the agent. The first page opens by default: it is what the agent chose to show
+         you, and the terminal is how you work on it, which is a different and rarer job. -->
+    <!-- Files both ways. Always visible on an agent page rather than hidden behind a tab, because
+         a report an agent finished this morning is no use if you have to go looking for it. -->
+    <!-- Only when there is something to show. An empty row is a row of nothing taking a row of
+         space, and sending a file lives in the bar's actions instead. -->
+    <div class="files thin" id="files" hidden>
+      <div class="fileset" id="fileset"></div>
+      <label class="drop small" id="drop">
+        <input type="file" id="pick" multiple hidden>
+        <span id="dropmsg">Send a file</span>
+      </label>
+    </div>
+
+    <nav class="tabs" id="tabs"></nav>
+
+    <div class="tabbody" id="tab-terminal">
+      <div class="termwrap">
+        <div class="termbar">
+          <span class="label" id="t-status">detached</span>
+          <span class="grow"></span>
+          <button class="btn small" id="t-interrupt" title="Halt the task, keep the agent">Stop task</button>
+          <button class="btn small" id="termkeys-toggle" title="Keys the phone lacks">Keys</button>
+          <button class="btn small" id="t-fit">Fit</button>
+        </div>
+        <div id="term"></div>
+      </div>
+
+      <!-- The same five keys as the chat, and needed more here: the permission dialog and the
+           model picker both live in the terminal, and a phone keyboard has no escape, no arrows
+           and no tab. -->
+      <div class="keys" id="termkeys">
+        <button data-key="shifttab" title="Cycle permission mode">&#8679;Tab</button>
+        <button data-key="up" title="Up">&uarr;</button>
+        <button data-key="down" title="Down">&darr;</button>
+        <button data-key="enter" title="Confirm">&crarr;</button>
+        <button data-key="esc" title="Cancel the dialog, or interrupt the agent">Esc</button>
+      </div>
+
+      <form class="say" id="say">
+        <textarea id="say-text" rows="1" placeholder="Say something. Shift and return for a new line."></textarea>
+        <button class="btn primary" type="submit">Send</button>
+      </form>
+    </div>
+
+    <!-- The chat. History comes from the session file, which is structured and reliable but lands
+         once per turn. The turn still being written arrives as JSON frames on the agent's own
+         socket. Neither alone is enough: the file has no present and the socket keeps no past. -->
+    <div class="tabbody" id="tab-chat" hidden>
+      <div class="chatwrap">
+        <div class="chatlog" id="chatlog"></div>
+        <!-- Three dots while the agent works and has written nothing yet. Outside the log, because
+             the log is rebuilt from the record on every paint. -->
+        <div class="thinking" id="chatthinking" hidden><span></span><span></span><span></span></div>
+        <!-- One off notices from the server, "The terminal exited." and its like. Outside the log
+             for the same reason: a notice is not in the record. -->
+        <div id="chatnotes" hidden></div>
+        <div class="chatnote" id="chatnote"></div>
+      </div>
+      <!-- Where an ask waits. The server sends every ask as data, so a permission ask and a
+           question ask are drawn here as cards, one per ask, and several may stack. Nothing times
+           out: a card waits until somebody answers it. -->
+      <div id="chatpending"></div>
+
+      <!-- The three keys a phone keyboard cannot give you, hidden behind the keyboard icon in the
+           bar below. Arrows move a dialog's selection; shift-Tab cycles the permission mode. -->
+      <div class="keys" id="chatkeys">
+        <button data-key="shifttab" title="Cycle permission mode">&#8679;Tab</button>
+        <button data-key="up" title="Previous option">&uarr;</button>
+        <button data-key="down" title="Next option">&darr;</button>
+        <button data-key="enter" title="Confirm">&crarr;</button>
+        <button data-key="esc" title="Cancel the dialog, or interrupt the agent">Esc</button>
+      </div>
+
+      <form class="say bar" id="chatsay">
+        <textarea id="chat-text" rows="1" placeholder="Message"></textarea>
+        <!-- The permission mode, which is Shift+Tab in the terminal. The raw names on purpose: the
+             owner reads and uses them, and a friendlier wording would be a second vocabulary for
+             the same three things. Filled and kept in step from script. -->
+        <select class="permmode" id="chatperm" title="Permission mode"></select>
+        <button class="icon round" type="button" id="chatkeys-toggle" title="Keys the phone lacks">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+               aria-hidden="true">
+            <rect x="2" y="6" width="20" height="12" rx="2"/>
+            <path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>
+          </svg>
+        </button>
+        <button class="icon round send" type="submit" title="Send">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+        </button>
+      </form>
+    </div>
+
+    <div class="tabbody" id="tab-view" hidden>
+      <div id="view-holder"></div>
+      <div class="empty small" id="view-empty">
+        <h2>This agent has not built a screen yet.</h2>
+        <p>Agents write their own. Ask this one to write a module to
+           <code id="view-path">views/&lt;id&gt;/view.js</code> exporting
+           <code>render(root, platform)</code>, and it appears here.</p>
+        <p>More files mean more tabs. <code>positions.js</code> becomes a Positions tab, and a
+           number in front sets the order: <code>10-positions.js</code> comes before
+           <code>20-pnl.js</code> and the number is not shown.</p>
+        <p class="aside">Tell it to read <code>DESIGN.md</code> first. Ten agents with their own
+           taste on one page look like ten products.</p>
+      </div>
+    </div>
+    </div>
+
+  </section>
+</main>
+
+<!-- new agent -->
+<dialog id="dlg-new">
+  <form method="dialog" id="form-new">
+    <button class="dlg-x" type="button" aria-label="Close">&times;</button>
+    <h2>New agent</h2>
+    <label>Name<input name="name" required autocomplete="off" placeholder="job search"></label>
+    <label>Folder<input name="cwd" required autocomplete="off" placeholder="~/work/thing or /full/path"></label>
+    <div class="row">
+      <label>Model
+        <!-- Filled from MODELS in app.js, so the console and the agent bar offer the same list. -->
+        <select name="model" id="new-model"></select>
+      </label>
+      <label>Permissions
+        <select name="permission_mode">
+          <option value="acceptEdits">accept edits, ask to run</option>
+          <option value="default">ask for everything</option>
+          <option value="bypassPermissions">ask for nothing</option>
+        </select>
+      </label>
+    </div>
+    <p class="note">Two agents may share a folder. They are two conversations, not two copies of
+       one.</p>
+    <div class="dlgact">
+      <button class="btn" value="cancel">Cancel</button>
+      <button class="btn primary" id="new-go" value="ok">Start</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dlg-views">
+  <form method="dialog" id="form-views">
+    <button class="dlg-x" type="button" aria-label="Close">&times;</button>
+    <h2 id="views-who">Where this agent shows</h2>
+    <p class="note">Hidden, not locked. The point is somebody standing behind you at work, not an
+       attacker: a hidden card's own address still opens, and its jobs still run.</p>
+    <label class="pick"><input type="checkbox" value="work"> Work</label>
+    <label class="pick"><input type="checkbox" value="demo"> Demo</label>
+    <label class="pick"><input type="checkbox" value="personal"> Personal</label>
+    <div class="dlgact">
+      <button class="btn" value="cancel">Cancel</button>
+      <button class="btn primary" value="ok">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dlg-job">
+  <form method="dialog" id="form-job">
+    <button class="dlg-x" type="button" aria-label="Close">&times;</button>
+    <h2>Schedule work</h2>
+    <p class="note">The agent is woken when the job is due and put back to sleep afterwards, unless
+       it was already awake. A job that was due while the laptop was shut is reported as missed and
+       never run late.</p>
+    <label>Agent
+      <select id="job-agent" required></select>
+    </label>
+    <label>Task
+      <textarea id="job-task" rows="3" required
+        placeholder="What the agent should do. It replies with task succeeded or task failed."></textarea>
+    </label>
+    <div class="row">
+      <label>Every day at
+        <input id="job-at" type="time" value="07:00">
+      </label>
+      <label>Or on a repeat
+        <select id="job-every">
+          <option value="">use the time of day</option>
+          <option value="300">every 5 minutes</option>
+          <option value="1800">every 30 minutes</option>
+          <option value="3600">every hour</option>
+          <option value="21600">every 6 hours</option>
+        </select>
+      </label>
+    </div>
+    <p class="note">Reporting is on by default, because the answer is usually the point of the job.
+       Turn it down here and only failures reach the phone.</p>
+    <label>Reporting
+      <select id="job-quiet">
+        <option value="">tell me either way</option>
+        <option value="1">only when it fails</option>
+      </select>
+    </label>
+    <div class="dlgact">
+      <button class="btn" value="cancel">Cancel</button>
+      <button class="btn primary" value="ok" id="job-go">Schedule it</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- undelivered messages, with a way to take one back -->
+<dialog id="dlg-held">
+  <form method="dialog" id="form-held">
+    <button class="dlg-x" type="button" aria-label="Close">&times;</button>
+    <h2 id="held-who">Undelivered</h2>
+    <p class="note">These arrive together the next time this agent wakes. Delete one and it never
+       does.</p>
+    <div class="heldlist" id="heldlist"></div>
+    <div class="dlgact">
+      <button class="btn danger" value="all" id="held-all">Delete all</button>
+      <span class="grow"></span>
+      <button class="btn" value="cancel">Close</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- draw a cord -->
+<dialog id="dlg-cord">
+  <form method="dialog" id="form-cord">
+    <button class="dlg-x" type="button" aria-label="Close">&times;</button>
+    <h2>Cord</h2>
+    <p class="note" id="cord-who">—</p>
+    <div class="seg" id="cord-kind">
+      <button type="button" class="on" data-kind="transfer">Transfer</button>
+      <button type="button" data-kind="call">Call</button>
+    </div>
+    <p class="note" id="cord-explain"></p>
+    <label>Instruction
+      <textarea name="instruction" rows="3" required
+        placeholder="send the summary to the research agent so it drafts a reply"></textarea>
+    </label>
+    <div class="dlgact">
+      <button class="btn" value="cancel">Cancel</button>
+      <button class="btn primary" value="ok">Draw</button>
+    </div>
+  </form>
+</dialog>
+
+<svg hidden aria-hidden="true">
+  <symbol id="i-system" viewBox="0 0 16 16">
+    <circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.3"/>
+    <path d="M8 1.8a6.2 6.2 0 0 0 0 12.4z" fill="currentColor"/>
+  </symbol>
+  <symbol id="i-light" viewBox="0 0 16 16">
+    <circle cx="8" cy="8" r="3.3" fill="currentColor"/>
+    <g stroke="currentColor" stroke-width="1.3" stroke-linecap="round">
+      <path d="M8 1v1.8M8 13.2V15M1 8h1.8M13.2 8H15M3.1 3.1l1.3 1.3M11.6 11.6l1.3 1.3M12.9 3.1l-1.3 1.3M4.4 11.6l-1.3 1.3"/>
+    </g>
+  </symbol>
+  <symbol id="i-dark" viewBox="0 0 16 16">
+    <path d="M13.4 10.2A5.8 5.8 0 0 1 6 2.7a5.9 5.9 0 1 0 7.4 7.5z" fill="currentColor"/>
+  </symbol>
+</svg>
+
+<script src="/vendor/xterm.js"></script>
+<script src="/vendor/addon-fit.js"></script>
+<script src="/app.js"></script>

@@ -1,0 +1,29 @@
+# The WhatsApp bridge, optional: a linked device on your WhatsApp number. It reads the chats you
+# follow on Config, and sends only what you tap Send on, when sending is on. See whatsapp/bridge.mjs.
+#
+# Install:
+#   sed "s|@REPO@|$PWD|g" deploy/ergo-whatsapp.service > ~/.config/systemd/user/ergo-whatsapp.service
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now ergo-whatsapp
+#
+# A separate unit from the daemon on purpose: restarting the daemon must not drop the linked
+# device, and a crash here must not take the agents' terminals with it.
+
+[Unit]
+Description=Ergo WhatsApp bridge
+After=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+WorkingDirectory=@REPO@/whatsapp
+ExecStart=/usr/bin/env node @REPO@/whatsapp/bridge.mjs
+Environment=PATH=%h/.local/node/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PLATFORM_VAR=@REPO@/var
+Environment=PLATFORM_API=http://127.0.0.1:8080
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target

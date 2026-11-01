@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Ergo</string>
+    <string name="title_activity_main">Ergo</string>
+    <string name="package_name">dev.ergo.app</string>
+    <string name="custom_url_scheme">dev.ergo.app</string>
+    <string name="change_address">Change address</string>
+</resources>

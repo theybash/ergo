@@ -1,0 +1,7 @@
+{"type":"thread.started","thread_id":"01a1507d-9ff6-7fa3-b848-15e5bc59c598"}
+{"type":"turn.started"}
+{"type":"item.completed","item":{"id":"item_0","type":"agent_message","text":"I’ll list the folder’s contents."}}
+{"type":"item.started","item":{"id":"item_1","type":"command_execution","command":"/bin/bash -lc ls","aggregated_output":"","exit_code":null,"status":"in_progress"}}
+{"type":"item.completed","item":{"id":"item_1","type":"command_execution","command":"/bin/bash -lc ls","aggregated_output":"a.txt\n","exit_code":0,"status":"completed"}}
+{"type":"item.completed","item":{"id":"item_2","type":"agent_message","text":"The folder contains one file: `a.txt`."}}
+{"type":"turn.completed","usage":{"input_tokens":28454,"cached_input_tokens":26368,"cache_write_input_tokens":0,"output_tokens":62,"reasoning_output_tokens":0}}

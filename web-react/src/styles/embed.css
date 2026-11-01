@@ -1,0 +1,7 @@
+/* Ergo Launcher's chat drawer: the chat alone. See main.jsx. */
+html.embed { --tab-h: 0px; --topbar-h: 0px; }
+html.embed .topbar, html.embed .tabbar, html.embed .vc-bar-slot { display: none !important; }
+html.embed.glass, html.embed.glass body, html.embed.glass #root, html.embed.glass main,
+html.embed.glass .screen, html.embed.glass .composer-wrap { background: transparent !important; }
+/* The drawer shows only the chat, so the Chat, Browser, Files strip has nothing to switch to. */
+html.embed .ch-faces { display: none !important; }

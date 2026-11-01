@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- One dark theme. The console draws itself, so the window only needs the stone colour
+         behind it, which also fills the status bar strip before the page paints. -->
+    <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">@color/stone</item>
+        <item name="android:statusBarColor">@color/stone</item>
+        <item name="android:navigationBarColor">@color/stone</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="colorPrimary">@color/stone</item>
+        <item name="colorPrimaryDark">@color/stone</item>
+        <item name="colorAccent">@color/mint</item>
+    </style>
+</resources>

@@ -1,0 +1,26 @@
+/* Email drafts, drawn with the feed's own post classes (feed.css). Only what a post has no class
+   for is here: the fields he can edit read as plain text until he taps into them. */
+.ml-drafts { margin: 0; }
+.ml-label { margin: 0; padding: 10px 16px 0; font-size: 13px; color: var(--text-dim); }
+.ml-mail { display: flex; flex-direction: column; gap: 0; padding: 0 12px 12px; }
+/* To, Cc and Subject as rows, like a mail app's header: a faded label, the value, a thin line. */
+.ml-row { display: flex; align-items: baseline; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+.ml-row > span { flex: none; width: 52px; font-size: 13px; color: var(--text-faint); }
+.ml-row > b { font-weight: 400; color: var(--text); overflow-wrap: anywhere; }
+.ml-row input, .ml-row textarea { flex: 1; min-width: 0; font-size: 14px; line-height: 1.35; overflow: hidden; }
+.ml-text { padding-top: 10px; }
+.ml-text.folded { max-height: 220px; overflow: hidden; }
+.ml-more { align-self: flex-start; margin-top: 4px; padding: 4px 0; border: 0; background: none; color: var(--accent); font: 13px var(--font-ui); cursor: pointer; }
+.ml-mail input, .ml-mail textarea { width: 100%; border: 0; padding: 0; background: none; color: var(--text); font: inherit; resize: none; }
+.ml-mail input:focus, .ml-mail textarea:focus { outline: none; }
+.ml-row .ml-subject, .ml-row b.ml-subject { font-weight: 600; }
+.ml-body { font-size: 14px; line-height: 1.45; overflow: hidden; }
+.ml-attach { margin: 4px 0 0; }
+.ml-acts { align-items: center; }
+.ml-acts button:disabled { opacity: .45; cursor: default; }
+.ml-state { font-size: 13px; color: var(--text-dim); }
+.ml-clock { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: manipulation; }
+.ml-ask { margin-top: 8px; }
+.ml-ask p { margin: 0; font-size: 14px; color: var(--text); }
+.ml-pick { padding: 8px 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font: inherit; font-size: 14px; color-scheme: dark light; }
+.ml-err { margin: 6px 0 0; font-size: 13px; color: #E25958; }

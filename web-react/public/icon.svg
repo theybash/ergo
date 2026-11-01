@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192" role="img" aria-label="Ergo">
+  <rect width="192" height="192" rx="42" fill="#1F1F1F"/>
+  <defs>
+    <mask id="u0"><rect width="192" height="192" fill="#fff"/><circle cx="114.66" cy="106.78" r="37.33" fill="none" stroke="#000" stroke-width="18.81"/></mask>
+    <mask id="u1"><rect width="192" height="192" fill="#fff"/><circle cx="96.00" cy="74.45" r="37.33" fill="none" stroke="#000" stroke-width="18.81"/></mask>
+    <mask id="u2"><rect width="192" height="192" fill="#fff"/><circle cx="77.34" cy="106.78" r="37.33" fill="none" stroke="#000" stroke-width="18.81"/></mask>
+  </defs>
+  <circle cx="96.00" cy="74.45" r="37.33" fill="none" stroke="#66DBAF" stroke-width="8.96" mask="url(#u0)"/>
+  <circle cx="77.34" cy="106.78" r="37.33" fill="none" stroke="#66DBAF" stroke-width="8.96" mask="url(#u1)"/>
+  <circle cx="114.66" cy="106.78" r="37.33" fill="none" stroke="#66DBAF" stroke-width="8.96" mask="url(#u2)"/>
+</svg>

@@ -1,0 +1,100 @@
+apply plugin: 'com.android.application'
+apply plugin: 'org.jetbrains.kotlin.android'
+
+// Release signing. Nothing here for a debug build. For a release, set these four in
+// ~/.gradle/gradle.properties (never in the repo) or as environment variables:
+//   ERGO_STORE_FILE=/absolute/path/to/your.keystore
+//   ERGO_STORE_PASSWORD=...
+//   ERGO_KEY_ALIAS=ergo
+//   ERGO_KEY_PASSWORD=...
+def signing = { String name -> project.findProperty(name) ?: System.getenv(name) }
+def storePath = signing('ERGO_STORE_FILE')
+
+// The laptop address. Empty by default: the app asks for it on the first run and saves it.
+// A build may bake one in with -PdaemonUrl=http://192.168.1.20:8080 (the owner can still change it).
+def daemonUrl = project.findProperty('daemonUrl') ?: ''
+// Where the app looks for updates, for example -PupdateUrl=https://<laptop>/app/version.json.
+// Empty by default, and then the self-updater is off.
+def updateUrl = project.findProperty('updateUrl') ?: ''
+
+android {
+    namespace = "dev.ergo.app"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "dev.ergo.app"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode((project.findProperty('versionCode') ?: '79') as int)
+        versionName "1.22.3"
+        buildConfigField 'String', 'UPDATE_URL', "\"${updateUrl}\""
+        buildConfigField 'long', 'UPDATE_EVERY_MS', '60000L'
+        // Only the default. The address in use is the saved one (Daemon.kt).
+        buildConfigField 'String', 'DAEMON_URL', "\"${daemonUrl}\""
+        aaptOptions {
+            // Files and dirs to omit from the packaged assets dir.
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    signingConfigs {
+        release {
+            if (storePath) {
+                storeFile file(storePath)
+                storePassword signing('ERGO_STORE_PASSWORD')
+                keyAlias signing('ERGO_KEY_ALIAS') ?: 'ergo'
+                keyPassword signing('ERGO_KEY_PASSWORD') ?: signing('ERGO_STORE_PASSWORD')
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            // Unsigned when no key is set; the build still runs.
+            if (storePath) signingConfig signingConfigs.release
+        }
+    }
+    buildFeatures {
+        buildConfig = true
+    }
+    kotlinOptions {
+        jvmTarget = '21'
+    }
+    lint {
+        abortOnError true
+    }
+}
+
+repositories {
+    flatDir {
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-ktx:$androidxCoreVersion"
+    // The front desk as a real Android call: self-managed calls through the phone system.
+    implementation "androidx.core:core-telecom:1.0.1"
+    // Float mode's faces: springs that throw a face to the edge, as Android's own bubbles do.
+    implementation "androidx.dynamicanimation:dynamicanimation:1.1.0"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1"
+    // Reading the words in a screenshot when the app on screen hands over no text, so Jev still
+    // has something to route by. The Play Services model lives on the phone, not in the APK.
+    implementation "com.google.android.gms:play-services-mlkit-text-recognition:19.0.1"
+    implementation "com.squareup.okhttp3:okhttp:4.12.0"
+    implementation project(':capacitor-android')
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+// The signed release APK, copied to android/out/ergo.apk.
+tasks.register('copyApk', Copy) {
+    from layout.buildDirectory.file('outputs/apk/release/app-release.apk')
+    into rootProject.file('../out')
+    rename { 'ergo.apk' }
+}
+afterEvaluate {
+    tasks.named('assembleRelease') { finalizedBy 'copyApk' }
+}

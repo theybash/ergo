@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Assistant mode: Ergo as the digital assistant. AssistService.kt says why each piece exists. -->
+<voice-interaction-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:sessionService="dev.ergo.app.AssistSessionService"
+    android:recognitionService="dev.ergo.app.AssistRecognizer"
+    android:supportsAssist="true"
+    android:supportsLaunchVoiceAssistFromKeyguard="true"
+    android:supportsLocalInteraction="false" />

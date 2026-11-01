@@ -1,0 +1,25 @@
+# The repository becomes public, so nothing personal, no credentials, and no operator specifics
+# in the tree. Configuration and state live here and are read at runtime.
+
+var/
+views/
+!views/.gitkeep
+
+__pycache__/
+*.pyc
+*.broken
+*.tmp
+*.platform-tmp
+
+# Vendored browser code, fetched by tools/fetch-vendor.sh rather than committed.
+web/vendor/
+
+# A YouTube transcript pulled in for research, not part of the project.
+transcript_*.txt
+
+# Written by install.sh for this laptop.
+ergo-run.sh
+
+# Build outputs and installed packages.
+web-react/dist/
+node_modules/

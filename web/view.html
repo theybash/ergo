@@ -1,0 +1,126 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>agent view</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  /* The typefaces arrive as data, put here by the server. A frame with an origin of its own
+     cannot fetch a font file, and opening its network policy to allow that is not worth it. */
+  /*FONTS*/
+
+  /* Tokens arrive from the console at boot, so a view follows the light and dark toggle without
+     knowing the toggle exists. Values here are only the fallback for the instant before. */
+  :root{--bg:#fff;--surface:#fff;--border:#e7e5e4;--text:#1c1917;--text-dim:#78716c;
+        --text-faint:#a8a29e;--accent:#248064;--accent-bg:#f2fbf8;
+        --up:#4d7c0f;--down:#b91c1c;--waiting:#b45309;--low:#cc4b61}
+  /* The same three faces as the console, each with the same one job. A view that picks its own
+     type looks like a different product sitting inside this one. */
+  :root{--font-display:"Instrument Serif",Georgia,serif;
+        --font-ui:"Inter",system-ui,-apple-system,sans-serif;
+        --font-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,monospace}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text)}
+  body{font:400 13px/1.55 var(--font-ui);padding:16px;-webkit-font-smoothing:antialiased}
+  h1,h2,.big{margin:0;font-weight:400;font-family:var(--font-display);letter-spacing:-.01em}
+  .mono,.num{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+  .label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim)}
+  .broke{border:1px solid var(--low);border-radius:4px;padding:16px;color:var(--low)}
+  .broke pre{white-space:pre-wrap;font:400 11px/1.5 ui-monospace,monospace;margin:8px 0 0;
+             color:var(--text-dim)}
+</style>
+
+<div id="root"></div>
+
+<!--VIEW-->
+
+<script type="module">
+/* The wrapper page belongs to the platform, and that is the whole point of it. It sets the
+ * content policy, it provides the bridge, and it calls render. If the agent wrote the whole page
+ * it would set its own policy and every rule protecting this frame would be a suggestion.
+ *
+ * This frame is sandboxed without allow-same-origin, so its origin matches nothing: it cannot
+ * read the console, and no view can read another. The policy blocks the network, because
+ * sandboxing governs the document rather than what it may call. */
+
+const root = document.getElementById('root');
+const pending = new Map();
+let seq = 0;
+
+function ask(name, args) {
+  /* Everything this frame needs comes down this channel, because the frame itself has no network:
+   * its policy is connect-src 'none' and its origin matches nothing. That rule is what stops code
+   * written by one agent talking to anything from inside the operator's browser.
+   *
+   * Asking the daemon to fetch an address is allowed, and is answer 30 of the daemon grill. The
+   * daemon attaches nothing of the operator's to it. */
+  return new Promise((resolve, reject) => {
+    const id = `r${++seq}`;
+    pending.set(id, { resolve, reject });
+    parent.postMessage({ id, name, args }, '*');
+    setTimeout(() => {
+      if (pending.has(id)) { pending.delete(id); reject(new Error(`${name} timed out`)); }
+    }, 20000);
+  });
+}
+
+const subs = new Map();
+const platform = {
+  call: ask,
+  state: () => ask('platform.state'),
+  health: () => ask('platform.health'),
+  /* Ask for something your agent published, by name. The reply carries `updated_at` and `age`,
+   * always, because a screen showing yesterday's numbers as though they were this morning's is
+   * worse than a screen showing nothing. Answer 14. */
+  data: (name) => ask('platform.data', { name }),
+  /* What there is to ask for: the files, and whether a live server is up to ask instead. */
+  available: () => ask('platform.available'),
+  /* The daemon fetches this for you. Any address. It sends no cookie and no token of the
+   * operator's, and it gives up after ten seconds or five megabytes. */
+  fetch: (url, opts) => ask('platform.fetch', { url, ...(opts || {}) }),
+  subscribe(name, fn) {
+    const list = subs.get(name) || [];
+    list.push(fn);
+    subs.set(name, list);
+    return () => subs.set(name, (subs.get(name) || []).filter((f) => f !== fn));
+  },
+};
+
+window.addEventListener('message', (ev) => {
+  const m = ev.data || {};
+  if (m.boot) {
+    for (const [k, v] of Object.entries(m.tokens || {})) {
+      document.documentElement.style.setProperty(k, v);
+    }
+    start();
+    return;
+  }
+  if (m.push && subs.has(m.push)) {
+    for (const fn of subs.get(m.push)) { try { fn(m.value); } catch {} }
+    return;
+  }
+  const p = pending.get(m.id);
+  if (!p) return;
+  pending.delete(m.id);
+  m.ok ? p.resolve(m.value) : p.reject(new Error(m.error || 'refused'));
+});
+
+let started = false;
+function start() {
+  if (started) return;
+  started = true;
+  const render = globalThis.__render;
+  if (typeof render !== 'function') {
+    root.innerHTML = '<div class="broke">This view did not export a render function.'
+      + '<pre>export function render(root, platform) { ... }</pre></div>';
+    return;
+  }
+  try {
+    render(root, platform);
+  } catch (err) {
+    /* A view that throws shows what happened rather than a blank rectangle. It is a leaf: its
+     * failure is contained here and the console keeps running. */
+    root.innerHTML = '<div class="broke">This view failed while drawing itself.<pre>'
+      + String(err && err.stack || err).replace(/[&<>]/g, (c) =>
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])) + '</pre></div>';
+  }
+}
+</script>

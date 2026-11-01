@@ -1,0 +1,42 @@
+/* The few rules Health needs that the frozen stylesheet does not carry.
+   Everything here is prefixed .hl- so it can never collide with app.css. */
+
+/* The verdict, in the serif, big enough to be the first thing read. The daemon writes the
+   sentence; this only gives it room. */
+.hl-verdict {
+  font-family: var(--font-display);
+  font-size: 27px; line-height: 1.25; color: var(--text);
+  margin: 0 0 var(--s4);
+}
+@media (max-width: 719px) { .hl-verdict { font-size: 22px; } }
+
+/* Everything the daemon measures about the link is a pair. One number alone says nothing:
+   8 ms to the router is fine beside 12 ms to the internet and bad beside 200 ms. */
+.hl-pair { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s2); }
+.hl-half { min-width: 0; }
+.hl-half + .hl-half { padding-left: var(--s2); border-left: 1px solid var(--border); }
+
+.hl-label {
+  font-size: 11px; letter-spacing: .4px; text-transform: uppercase;
+  color: var(--text-faint); margin: 0 0 4px;
+}
+.hl-big {
+  font-family: var(--font-mono); font-size: 21px; line-height: 1.1; color: var(--text);
+  margin: 0 0 4px; overflow-wrap: anywhere;
+}
+.hl-big.low { color: var(--down); }
+.hl-sub { font-size: 12px; color: var(--text-dim); margin: 0; overflow-wrap: anywhere; }
+
+.hl-foot { display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap; margin-top: var(--s2); }
+.hl-note { color: var(--text-faint); font-size: 12px; margin: 0; }
+.hl-err { color: var(--down); font-size: 12.5px; margin: 0 0 var(--s2); }
+
+/* A number in a table that has gone past its limit. */
+.hl-bad { color: var(--down); }
+.hl-num { font-family: var(--font-mono); }
+
+/* The machine table, on a phone. app.css gives every table a 420px floor and stops every cell
+   wrapping, which is right for a row of numbers and wrong for the last column here, where the
+   text is a sentence. So this table alone may be narrower and its last column may wrap. */
+.hl-table { min-width: 260px; }
+.hl-table th, .hl-table td { white-space: normal; }

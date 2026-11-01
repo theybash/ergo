@@ -1,0 +1,94 @@
+/* The messages he did not type, each as the thing it is about (Elements.jsx). Quiet chrome: no
+   pills, no halos, no gradients. Agent words run on the page; only his words are bubbles. */
+
+.el-head {
+  display: flex; align-items: center; gap: 8px; margin: 0; min-width: 0;
+  font-size: 13.5px; line-height: 20px;
+}
+.el-name { font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.el-link { background: none; border: 0; padding: 0; font: inherit; font-weight: 500; color: var(--text); cursor: pointer; }
+.el-link:disabled { cursor: default; }
+.el-rel { color: var(--text-faint); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.el-at { margin-left: auto; flex: none; font-family: var(--font-mono); font-size: 10.5px; color: var(--text-faint); }
+.el-icon { flex: none; width: 15px; height: 15px; color: var(--text-faint); }
+.el-ok { color: var(--accent); font-size: 12.5px; }
+.el-bad { color: var(--needs); font-size: 12.5px; }
+
+/* Cut at --fold-lines lines; open shows it all. Show more sits under it, quiet. */
+.el-fold[data-open="false"] {
+  overflow: hidden; max-height: calc(var(--fold-lines, 6) * 1lh);
+}
+.el-more {
+  align-self: flex-start; background: none; border: 0; padding: 2px 0 0; cursor: pointer;
+  font: inherit; font-size: 12.5px; color: var(--text-faint);
+}
+.el-more:hover { color: var(--text-dim); }
+
+/* His reply to a feed post: the whole post, as in the feed, right above his bubble. */
+.el-feed {
+  align-self: flex-end; max-width: min(560px, 88%); box-sizing: border-box; margin-bottom: -6px;
+  border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; background: var(--surface);
+  cursor: pointer; display: flex; flex-direction: column; gap: 4px;
+}
+.el-feed-text { font-size: 14px; line-height: 20px; color: var(--text-dim); }
+.el-feed-text p { margin: 0 0 6px; }
+.el-feed-text > div > :last-child { margin-bottom: 0; }
+
+/* What his words answer, small and right aligned above his bubble. */
+.el-quote {
+  align-self: flex-end; max-width: min(560px, 86%); margin-bottom: -6px;
+  display: flex; flex-direction: column; align-items: flex-end; text-align: right;
+  font-size: 12.5px; line-height: 17px;
+}
+.el-quote-label { color: var(--text-faint); font-family: var(--font-mono); font-size: 10.5px; }
+.el-quote-text { color: var(--text-dim); }
+.el-source {
+  margin: 0 2px 2px; font-family: var(--font-mono); font-size: 10.5px; color: var(--text-faint);
+}
+
+.el-task { align-self: stretch; }
+
+/* One line: an answer, an ask check, a small event. */
+.el-line {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0; min-width: 0;
+  font-size: 13.5px; line-height: 20px; color: var(--text-dim);
+}
+.el-line-text { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+.el-dim { color: var(--text-faint); }
+.el-alarm { color: var(--needs); }
+.el-alarm .el-icon { color: var(--needs); }
+.el-yes { color: var(--accent); font-weight: 500; }
+.el-why { flex-basis: 100%; color: var(--text-faint); font-size: 12.5px; }
+
+/* A job's result and a task report: the thin mint bar of the old card, a name, a word. */
+.el-job {
+  align-self: flex-start; max-width: min(660px, 92%); box-sizing: border-box;
+  padding: 1px 0 1px 12px; border-left: 2px solid color-mix(in srgb, var(--accent) 75%, transparent);
+  display: flex; flex-direction: column; gap: 2px;
+}
+.el-job-text { font-size: 14px; line-height: 21px; color: color-mix(in srgb, var(--text) 72%, transparent); margin: 0; overflow-wrap: anywhere; }
+.el-job-text p { margin: 0 0 4px; }
+
+/* Another agent speaking: its face and name, its words on the page under them. */
+.el-agent { align-self: stretch; display: flex; flex-direction: column; gap: 3px; }
+.el-agent-body { margin-left: 30px; font-size: 14.5px; line-height: 22px; }
+.el-agent-body p { margin: 0 0 8px; }
+.el-agent > .el-more { margin-left: 30px; }
+
+/* A call, his or between agents, and a WhatsApp message: a quiet box. */
+.el-box {
+  align-self: stretch; box-sizing: border-box; display: flex; flex-direction: column; gap: 6px;
+  border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; background: var(--surface);
+}
+.el-call .el-icon { color: var(--accent); }
+.el-box-text { font-size: 14px; line-height: 20px; color: color-mix(in srgb, var(--text) 82%, transparent); }
+.el-box-text p { margin: 0 0 6px; }
+.el-wa {
+  align-self: stretch; display: flex; flex-direction: column; gap: 4px;
+  border-left: 2px solid var(--border-hi); padding-left: 11px;
+}
+
+/* Headings inside a folded text read as plain bold lines, so a short result never folds. */
+.el-fold :is(h1, h2, h3, h4, h5, h6) { font-size: inherit; line-height: inherit; margin: 0 0 4px; font-weight: 600; }
+.el-fold > :first-child > :first-child, .el-fold > :first-child { margin-top: 0; }
+.el-prose > div > :last-child { margin-bottom: 0; }

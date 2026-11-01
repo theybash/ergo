@@ -1,0 +1,249 @@
+/* The few rules Config needs that the frozen stylesheet does not carry.
+   Everything here is prefixed .cf- so it can never collide with app.css.
+   config/index.jsx imports this file, because that is the one component always drawn here. */
+
+/* The three sections. A quiet serif heading, the same gap the other screens leave. */
+.cf-section { margin-top: var(--s5); }
+.cf-section:first-of-type { margin-top: var(--s2); }
+.cf-head { font-size: 23px; margin: 0 0 var(--s2); }
+
+/* The agent rows sit in one fleet card, one line between each. The card is not a button, so it
+   keeps its face on hover. */
+.cf-rows { list-style: none; margin: 0; padding: 0 var(--s3); }
+.cf-rows.agentcard:hover { border-color: var(--border); background: var(--surface); }
+
+.cf-row {
+  display: grid; grid-template-columns: minmax(0, 200px) 1fr; align-items: center;
+  gap: var(--s1) var(--s3); padding: var(--s2) 0;
+}
+.cf-row + .cf-row { border-top: 1px solid var(--border); }
+
+.cf-name {
+  font-family: var(--font-display); font-size: 18px; line-height: 1.2;
+  min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.cf-controls { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s1) var(--s4); min-width: 0; }
+
+/* Three boxes and their words. */
+.cf-views { display: flex; align-items: center; gap: var(--s3); border: 0; margin: 0; padding: 0; min-width: 0; }
+.cf-hide {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+.cf-check { display: inline-flex; align-items: center; gap: 7px; color: var(--text-dim); font-size: 13px; cursor: pointer; min-height: 32px; }
+.cf-check input {
+  appearance: none; -webkit-appearance: none; margin: 0; flex: 0 0 auto;
+  width: 15px; height: 15px; border: 1px solid var(--border-hi); border-radius: 3px;
+  background: var(--bg); cursor: pointer;
+}
+/* Checked is a filled square inside the box. No colour, the text colour. */
+.cf-check input:checked { background: var(--text-dim); border-color: var(--text-dim); box-shadow: inset 0 0 0 3px var(--bg); }
+.cf-check input[type="radio"] { border-radius: 50%; }
+.cf-check input:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 2px; }
+/* The one tag left cannot come off, and says so by not answering the pointer. */
+.cf-check:has(input:disabled) { cursor: default; }
+.cf-check input:disabled { cursor: default; opacity: .7; }
+
+.cf-selects { display: flex; align-items: center; gap: var(--s1); min-width: 0; }
+.cf-select {
+  appearance: none; -webkit-appearance: none;
+  min-height: 32px; min-width: 0; max-width: 190px; padding: 0 26px 0 10px;
+  border: 1px solid var(--border); border-radius: 6px; background-color: var(--bg);
+  color: var(--text-dim); font-family: var(--font-mono); font-size: 11.5px; cursor: pointer;
+  text-overflow: ellipsis;
+  background-image: linear-gradient(45deg, transparent 50%, var(--text-faint) 50%), linear-gradient(135deg, var(--text-faint) 50%, transparent 50%);
+  background-position: calc(100% - 14px) 14px, calc(100% - 10px) 14px;
+  background-size: 4px 4px, 4px 4px; background-repeat: no-repeat;
+}
+.cf-select:hover { border-color: var(--border-hi); color: var(--text); }
+.cf-select:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 2px; }
+
+.cf-err { grid-column: 1 / -1; color: var(--down); font-size: 12.5px; margin: 0; }
+
+/* The phone. The name takes its own line, the boxes under it, the two selects under those,
+   each half the width. */
+@media (max-width: 719px) {
+  .cf-rows { padding: 0 var(--s2); }
+  .cf-row { grid-template-columns: 1fr; gap: 4px; }
+  .cf-controls { flex-direction: column; align-items: stretch; gap: 6px; }
+  .cf-selects { display: grid; grid-template-columns: 1fr 1fr; }
+  .cf-select { max-width: none; width: 100%; }
+}
+
+/* Under its own Health heading the verdict is a sentence, not a second title. */
+.cf-section .hl-verdict { font-size: 19px; color: var(--text-dim); }
+
+/* Usage. Quiet lines with a thin bar under each, then a plain table. The bar is grey and takes
+   the waiting tone only above 80 percent of its limit. */
+.cf-usage { display: flex; flex-direction: column; gap: var(--s2); }
+.cf-meter { max-width: 460px; }
+.cf-meter-line {
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px var(--s1);
+  margin: 0 0 6px; font-size: 13.5px; color: var(--text-dim);
+}
+.cf-meter-label { color: var(--text); }
+.cf-meter-rest { color: var(--text-dim); }
+.cf-num { font-family: var(--font-mono); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.cf-faint { color: var(--text-faint); font-size: 12px; }
+.cf-bar { height: 3px; border-radius: 2px; background: var(--border); overflow: hidden; }
+.cf-bar > span { display: block; height: 100%; background: var(--text-faint); }
+.cf-bar-high > span { background: var(--waiting); }
+.cf-u-line { margin: 0; }
+
+.cf-u-table { border-collapse: collapse; width: 100%; min-width: 0; max-width: 720px; margin-top: var(--s2); }
+.cf-u-table th, .cf-u-table td { text-align: left; padding: 7px var(--s3) 7px 0; vertical-align: baseline; }
+.cf-u-table th {
+  color: var(--text-faint); font-weight: 400; font-size: 11.5px;
+  border-bottom: 1px solid var(--border);
+}
+.cf-u-table td { color: var(--text-dim); border-bottom: 1px solid var(--border); }
+.cf-u-table td.cf-u-name { color: var(--text); font-size: 13.5px; }
+
+/* The phone. The model column goes. It sat under the name in mono, and the model picker in the
+   agent rows already names it. */
+@media (max-width: 719px) {
+  .cf-u-table .cf-u-model { display: none; }
+  .cf-u-table th, .cf-u-table td { padding-right: var(--s2); }
+  .cf-u-table th { white-space: normal; }
+  .cf-u-table th:last-child, .cf-u-table td:last-child { padding-right: 0; }
+}
+
+/* The voice memory fields. A number in a small box, the same face as the selects above. The
+   browser's spin arrows are taken off, because they are chrome the page does not need. */
+/* A grid, so the two boxes line up under each other whatever their labels, and the words after
+   a box wrap inside their own column on a phone rather than under the label. */
+.cf-vm-line { display: grid; grid-template-columns: 104px 56px minmax(0, 1fr); align-items: center; gap: 0 var(--s1); }
+.cf-number {
+  appearance: textfield; -moz-appearance: textfield;
+  width: 56px; min-height: 32px; padding: 0 8px; margin: 0;
+  border: 1px solid var(--border); border-radius: 6px; background: var(--bg);
+  color: var(--text); font-family: var(--font-mono); font-size: 12.5px;
+  font-variant-numeric: tabular-nums; text-align: right;
+}
+/* The Bubble row: its two choices take the number and rest columns of the rows above. */
+.cf-bubble-opts { grid-column: 2 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 4px var(--s2); }
+.cf-number::-webkit-outer-spin-button, .cf-number::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.cf-number:hover { border-color: var(--border-hi); }
+.cf-number:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 2px; }
+
+/* The inbox. The same card and lines as the agent rows: the agent, its line, the urgency and
+   age in small mono, and one small button. The last day sits back, faint, under the waiting. */
+.cf-ib-row { grid-template-columns: minmax(0, 140px) minmax(0, 1fr) auto auto; }
+.cf-ib-agent {
+  font-family: var(--font-mono); font-size: 11.5px; color: var(--text-dim);
+  min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cf-ib-text { min-width: 0; font-size: 13.5px; color: var(--text); overflow-wrap: anywhere; }
+.cf-ib-meta { font-family: var(--font-mono); font-size: 11px; color: var(--text-faint); white-space: nowrap; }
+.cf-ib-day { margin-top: var(--s2); }
+.cf-ib-box { max-height: 46vh; overflow-y: auto; overscroll-behavior: contain; }
+.cf-ib-two { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; cursor: pointer; }
+.cf-ib-x { display: grid; place-items: center; width: 28px; height: 28px; padding: 0; background: none; border: 0; color: var(--text-faint); cursor: pointer; }
+.cf-ib-x svg { width: 16px; height: 16px; }
+.cf-ib-x:hover, .cf-ib-x:active { color: var(--text); }
+/* A section that folds to its heading: the heading is the button. */
+.cf-fold { display: inline-flex; align-items: center; gap: 8px; padding: 0; background: none; border: 0; color: inherit; font: inherit; cursor: pointer; }
+.cf-ib-told .cf-ib-agent, .cf-ib-told .cf-ib-text { color: var(--text-faint); }
+.cf-ib-clear { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s1); margin: var(--s1) 0 0; font-size: 13.5px; }
+.cf-ib-times { margin-top: var(--s3); }
+/* A time is five characters, so its box is a little wider than a number's. */
+.cf-vm-line:has(.cf-time) { grid-template-columns: 104px 64px minmax(0, 1fr); }
+.cf-number.cf-time { width: 64px; text-align: center; }
+
+@media (max-width: 719px) {
+  .cf-ib-row { grid-template-columns: minmax(0, 1fr) auto; gap: 2px var(--s2); }
+  .cf-ib-text { grid-column: 1 / -1; order: 3; }
+  .cf-ib-meta { order: 2; }
+  .cf-ib-act, .cf-ib-x { grid-column: 2; grid-row: 1 / span 2; align-self: start; }
+}
+
+/* The front desk's prompt. A tall plain box in the mono face, since it is a file he edits, then the
+   actions on the right with a status line on the left. */
+.hp { display: flex; flex-direction: column; gap: var(--s1); }
+.hp-box {
+  width: 100%; min-height: 420px; resize: vertical; padding: 12px 14px;
+  border: 1px solid var(--border); border-radius: 8px; background: var(--bg);
+  color: var(--text); font-family: var(--font-mono); font-size: 12.5px; line-height: 1.6;
+}
+.hp-box:focus { outline: none; border-color: var(--text-faint); }
+.hp-acts { display: flex; align-items: center; justify-content: flex-end; gap: var(--s1); flex-wrap: wrap; }
+.hp-said { margin-right: auto; color: var(--text-faint); font-size: 12.5px; }
+@media (max-width: 719px) { .hp-box { min-height: 60vh; } }
+/* On a touch screen a prompt box does not scroll until it has focus, so a swipe over it scrolls
+   the page. A tap focuses it, and then it scrolls, and only its own text. */
+@media (pointer: coarse) {
+  .hp-box:not(:focus) { overflow: hidden; }
+  .hp-box:focus { overscroll-behavior: contain; }
+}
+
+/* Logins: one row each, agent, title and site, and the form to add one. */
+.cf-logins { display: flex; flex-direction: column; gap: 8px; }
+.cf-login { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.cf-login-what { flex: 1; min-width: 0; }
+.cf-login-what span { color: var(--text-faint); font-size: 12.5px; margin-left: 6px; }
+.cf-login-site { font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 40%; }
+.cf-login-form { display: flex; flex-direction: column; gap: 8px; }
+.cf-login-form input, .cf-login-form select { padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font: inherit; min-width: 0; }
+.cf-login-acts { display: flex; justify-content: flex-end; gap: 8px; }
+.cf-note { margin: 0; font-size: 13px; color: var(--text-dim); }
+
+/* Voices: a play button beside each picker, the size of the select, no fill. */
+.cf-play {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 32px; height: 32px; border: 1px solid var(--border); border-radius: 6px;
+  background: var(--bg); color: var(--text-dim); cursor: pointer; padding: 0;
+}
+.cf-play:hover { border-color: var(--border-hi); color: var(--text); }
+.cf-play:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 2px; }
+.cf-play-glyph { width: 13px; height: 13px; fill: currentColor; }
+.cf-prewarm { margin-top: var(--s1); padding: 0 var(--s3); }
+
+/* The plan prompt is a paragraph, not a persona, so its box is short. */
+.hp-box.tk-prompt { min-height: 120px; }
+@media (max-width: 719px) { .hp-box.tk-prompt { min-height: 160px; } }
+.hp-box.tk-hours { width: 5em; min-height: 0; padding: 6px 10px; text-align: center; }
+
+/* WhatsApp: one status line, the pairing QR on white while it pairs (a scanner needs the contrast),
+   then the chats in the same card and rows as the agents. */
+.cf-wa { display: flex; flex-direction: column; gap: var(--s2); }
+.cf-wa .cf-meter-line { margin: 0; }
+.cf-wa-pair { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s2) var(--s3); }
+.cf-wa-qr { display: block; background: #fff; border-radius: 6px; }
+.cf-wa-pair .cf-note { max-width: 260px; }
+
+/* Drafts: who it goes to and which agent wrote it, the reply in a box he can edit, and two small
+   buttons. Send stays grey until sending is allowed. */
+.cf-wa-drafts { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--s2); max-width: 560px; }
+.cf-wa-draft { display: flex; flex-direction: column; gap: 6px; padding-bottom: var(--s2); border-bottom: 1px solid var(--border); }
+.cf-wa-to { font-size: 13.5px; color: var(--text); }
+.cf-wa-to span { color: var(--text-faint); font-size: 12.5px; margin-left: 6px; }
+.cf-wa-text {
+  width: 100%; resize: vertical; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px;
+  background: var(--bg); color: var(--text); font: inherit; font-size: 13.5px; line-height: 1.5;
+}
+.cf-wa-text:focus { outline: none; border-color: var(--text-faint); }
+/* WhatsApp's chats: a box of their own that scrolls, with a search above it. */
+.wa-find { width: 100%; margin: 8px 0; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font: inherit; font-size: 15px; }
+.wa-find:focus { outline: none; border-color: var(--text-dim); }
+.wa-list { max-height: 55vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+/* The Usage heading with its Reload button at the right. */
+.cf-u-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s3); }
+
+/* The one-time connect command for a new outside agent. */
+.cf-outside-made { display: flex; flex-direction: column; gap: 8px; }
+.cf-outside-cmd { margin: 0; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); font-family: var(--font-mono); font-size: 12px; white-space: pre-wrap; word-break: break-all; }
+
+/* Instructions: each CLAUDE.md is a row that opens its box. A plain row, the logins' look. */
+.cf-md-row { width: 100%; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.cf-md-row[aria-expanded="true"] .cf-login-what { color: var(--text); }
+
+/* The photo or file with a WhatsApp draft. */
+.wa-file{display:block;margin:6px 0;font-size:13px;color:var(--accent);word-break:break-all}
+.wa-photo img{display:block;max-width:220px;max-height:220px;border-radius:var(--rm);object-fit:cover}
+
+/* Hidden agents: the id, and Show at the end of the row. */
+.cf-hidden-row { grid-template-columns: 1fr auto; }
+.cf-hidden-id { font-family: var(--font-mono); font-size: 13px; color: var(--text-dim); min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 719px) { .cf-row.cf-hidden-row { grid-template-columns: 1fr auto; } }

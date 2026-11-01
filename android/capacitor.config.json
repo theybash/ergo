@@ -1,0 +1,16 @@
+{
+  "appId": "dev.ergo.app",
+  "appName": "Ergo",
+  "webDir": "www",
+  "server": {
+    "errorPath": "error.html"
+  },
+  "android": {
+    "backgroundColor": "#0f0e0d"
+  },
+  "plugins": {
+    "SystemBars": {
+      "style": "DARK"
+    }
+  }
+}

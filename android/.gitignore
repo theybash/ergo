@@ -1,0 +1,15 @@
+# Installed and built, never committed.
+node_modules/
+out/
+.gradle/
+build/
+android/.gradle/
+android/build/
+android/app/build/
+local.properties
+android/local.properties
+# Signing keys and their passwords.
+keystore/
+*.jks
+*.keystore
+keystore.properties

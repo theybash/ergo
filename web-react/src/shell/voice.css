@@ -1,0 +1,581 @@
+/* The voice overlay, the parts the mock never had. app.css is frozen and already holds .voice,
+   .voice-inner, .orb-big, .voice-state and .voice-stop, so everything new lives here and starts
+   with vc- so it can never collide with either stylesheet. */
+
+/* The rolling transcript. The last few turns, his on the right and quiet, hers on the left. It
+   scrolls inside itself rather than growing the overlay, because the orb must not move. */
+.vc-log {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  width: 100%;
+  max-height: 34vh;
+  overflow-y: auto;
+  scrollbar-width: none;
+  text-align: left;
+}
+
+.vc-log::-webkit-scrollbar { display: none; }
+
+.vc-turn {
+  max-width: 86%;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 19px;
+  line-height: 1.35;
+}
+
+/* Hers. The thing you are listening to, so it reads at full strength. */
+.vc-turn.vc-them { align-self: flex-start; color: var(--text); }
+
+/* Yours. Already said, so it sits back. */
+.vc-turn.vc-you {
+  align-self: flex-end;
+  text-align: right;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--text-faint);
+}
+
+/* The turn in flight, still being transcribed. */
+.vc-turn.vc-part { opacity: .62; }
+
+/* The proposal card. One sentence and two buttons, so a tap works as well as a spoken yes. */
+.vc-card {
+  width: 100%;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+  border-radius: var(--rb);
+  background: var(--surface);
+  padding: var(--s3);
+  text-align: left;
+}
+
+.vc-card-label {
+  margin: 0 0 var(--s1);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.vc-card-say {
+  margin: 0 0 var(--s3);
+  font-family: var(--font-display);
+  font-size: 19px;
+  line-height: 1.35;
+  color: var(--text);
+  /* A long readback scrolls inside the card. The buttons stay on screen whatever he proposed,
+     because a Confirm he cannot reach is a proposal he cannot answer. */
+  max-height: 40vh;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.vc-card-say::-webkit-scrollbar { display: none; }
+
+.vc-card-acts { display: flex; gap: var(--s1); }
+.vc-card-acts .btn { flex: 1 1 0; }
+
+/* The clock. Minutes on this call, and minutes left today. Mono, because it is a number you may
+   read aloud. */
+.vc-clock {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: .4px;
+  color: var(--text-faint);
+}
+
+/* Something went wrong and the call did not open. Said plainly, in place of the transcript. */
+.vc-error {
+  margin: 0;
+  max-width: 34em;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--needs);
+}
+
+/* A reader who asked for no motion gets none of it, including the overlay's own fade. */
+@media (prefers-reduced-motion: reduce) {
+  .voice { animation: none; }
+  .vc-log { scroll-behavior: auto; }
+}
+
+@media (max-width: 719px) {
+  .vc-log { max-height: 28vh; }
+  .vc-turn { font-size: 17px; }
+  .vc-card-say { font-size: 17px; }
+}
+
+/* The control row: Mute, Pause or Resume, Hang up, left to right. Every one of them is at least
+   44px so a thumb finds it, and the tab order is the order they are read in. */
+.vc-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s2);
+  flex-wrap: wrap;
+}
+
+.vc-controls .btn { min-height: 44px; }
+
+/* Mute. Round, because it is the one control that is a state rather than an act. */
+.vc-round {
+  width: 44px;
+  min-width: 44px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+/* Muted, and it has to be plain at a glance. The ring and the glyph both change, so neither
+   colour alone carries it. */
+.vc-round.vc-on {
+  border-color: var(--down);
+  background: color-mix(in srgb, var(--down) 14%, transparent);
+  color: var(--down);
+}
+
+.vc-round.vc-on:hover { background: color-mix(in srgb, var(--down) 20%, transparent); }
+
+.vc-mic {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+.vc-round.vc-on .vc-mic rect { fill: color-mix(in srgb, var(--down) 22%, transparent); }
+.vc-slash { stroke-width: 1.9; }
+
+/* Pause and Resume. One button, two words, so the row never changes shape under his thumb. */
+.vc-hold { min-width: 92px; }
+
+/* The line under a call that paused itself: how it comes back. Quiet on purpose, because it is
+   a note rather than a warning, and nothing is going wrong. */
+.vc-hint {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: .4px;
+  color: var(--text-faint);
+}
+
+/* The microphone is off. Said in words as well as drawn on the button. */
+.vc-flag {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: .4px;
+  text-transform: uppercase;
+  color: var(--down);
+}
+
+/* The console's own row: a task went out, or it did not. Neither his nor hers, so it sits in
+   the middle and stays out of the way. No colour, no pill, no ring: it is a fact, and a fact
+   that shouts is a fact he stops reading. */
+.vc-turn.vc-note {
+  align-self: center;
+  max-width: 100%;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: .4px;
+  color: var(--text-faint);
+}
+
+/* An inbox item. The agent's name in small mono, its line beside it. The whole row is the button
+   that opens that agent's chat, so it takes no chrome of its own: no border, no fill. */
+.vc-turn.vc-brief {
+  align-self: flex-start;
+  max-width: 100%;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--font-ui);
+  font-size: 14px;
+}
+.vc-brief-open {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s1);
+  min-width: 0;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: var(--text-dim);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.vc-brief-open:hover .vc-brief-text { color: var(--text); }
+.vc-brief-open:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 2px; }
+.vc-brief-agent {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: .4px;
+  color: var(--text-faint);
+}
+.vc-brief-text { min-width: 0; }
+.vc-brief-done .vc-brief-open { opacity: .5; }
+
+/* The mark on a line he keyed in rather than said. */
+.vc-keyed {
+  margin-left: 6px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: .4px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+/* Ask or Auto. Two words in one button, the same width for both, so the control row never
+   shifts under his thumb when he taps it. */
+.vc-mode {
+  min-width: 64px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .4px;
+}
+
+/* Auto is the one that acts on its own, so it is the one that is marked. The border carries it
+   as well as the colour. */
+.vc-mode.vc-on {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  color: var(--accent);
+}
+
+/* The typed box. For a spelling, a name, a correction: the things speech gets wrong. One line,
+   Enter sends, and it sits above the controls so his thumb finds the call buttons first. */
+.vc-type {
+  display: flex;
+  gap: var(--s1);
+  width: 100%;
+}
+
+/* The field: the picture button, the image chip when there is one, and the input, inside one
+   border, so the three read as one box. */
+.vc-field {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 var(--s1) 0 2px;
+  border: 1px solid var(--border);
+  border-radius: var(--rb);
+  background: var(--surface);
+}
+
+.vc-type-in {
+  /* A zero basis, so the input's own default width never pushes the overlay past the gutter
+     on a phone. It grows into whatever the row has left. */
+  flex: 1 1 0;
+  width: 0;
+  min-width: 0;
+  min-height: 42px;
+  padding: 0 var(--s1);
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 16px;
+}
+
+/* 16px above, because anything smaller makes a phone zoom the whole page on focus. */
+.vc-type-in::placeholder { color: var(--text-faint); }
+
+/* The focused box says so with its border and nothing else. The app's own inputs do the same,
+   and a ring around a text box in the middle of a dark overlay reads as a halo. The keyboard
+   focus ring is the stylesheet's global one and is left alone. */
+.vc-type-in:focus { outline: none; }
+.vc-field:focus-within { border-color: var(--text-dim); }
+
+/* The picture button at the left edge of the box. No border of its own: it is part of the box. */
+.vc-pick {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--rb);
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.vc-pick:hover { color: var(--text); }
+
+/* The image waiting to go. A small square thumbnail with an x on its corner. */
+.vc-chip {
+  position: relative;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  margin: 0 var(--s1) 0 2px;
+}
+
+.vc-chip-img {
+  display: block;
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.vc-chip-x {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.vc-chip-x:hover { color: var(--text); }
+
+.vc-chip-x svg {
+  width: 10px;
+  height: 10px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+/* The keyboard button while the box is showing. Quieter than muted, because showing a box is
+   not a warning: the ring and the glyph come up to full strength and that is all. */
+.vc-round.vc-shown {
+  border-color: var(--text-dim);
+  color: var(--text);
+}
+
+.vc-type-go { min-height: 44px; }
+
+/* The phone. The keyboard takes half the screen, and the overlay is a grid centred on a fixed
+   180px orb, so without this the top of it goes off the top of the screen and the orb goes with
+   it. The overlay scrolls instead, and the orb gives way while he types. The id is in the
+   selector so these beat app.css whichever order the bundle puts them in. */
+@media (max-width: 719px) {
+  .voice#voice {
+    align-content: start;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .voice#voice .orb-big { width: 132px; height: 132px; }
+
+  .voice#voice.vc-typing .orb-big { width: 84px; height: 84px; }
+  .voice#voice.vc-typing .vc-log { max-height: 20vh; }
+
+  /* A proposal on the phone. The orb and the log give way so the card, its two buttons and the
+     controls all fit on one screen without a scroll he may not manage mid call. */
+  .voice#voice.vc-asking .orb-big { width: 84px; height: 84px; }
+  .voice#voice.vc-asking .vc-log { max-height: 16vh; }
+  .voice#voice.vc-asking .vc-card-say { max-height: 28vh; font-size: 16px; }
+}
+
+/* Minimise, at the top left of the overlay. The same quiet round control as Mute, with a
+   chevron that points the way the overlay goes. */
+.voice#voice .vc-min {
+  position: absolute;
+  top: calc(var(--s3) + env(safe-area-inset-top, 0px));
+  left: var(--s3);
+  color: var(--text-dim);
+}
+
+.voice#voice .vc-min:hover { color: var(--text); }
+
+/* The minimised call. A thin band under the top bar, in the page's flow, so it pushes the screen
+   down rather than covering the composer or the tab bar. Sticky, so it stays in reach as the
+   page scrolls, and a fixed 52px tall so the agent page can take it off its own height. */
+.vc-bar-slot {
+  position: sticky;
+  top: var(--topbar-h);
+  z-index: 39;
+}
+
+.vc-bar {
+  --vc-bar-h: 52px;
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  height: var(--vc-bar-h);
+  padding: 0 var(--s3);
+  background: var(--glass);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+  backdrop-filter: saturate(180%) blur(14px);
+  border-bottom: 1px solid var(--border);
+}
+
+/* The bar itself. Everything but Mute and Hang up is this one button, so a tap anywhere on it
+   brings the call back. */
+.vc-bar-open {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  text-align: left;
+  color: var(--text);
+}
+
+.vc-bar-open:hover .vc-bar-name { color: var(--text); }
+
+.vc-bar .vc-bar-orb {
+  width: 28px;
+  height: 28px;
+}
+
+.vc-bar-name {
+  font-family: var(--font-display);
+  font-size: 16px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.vc-bar-time {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+.vc-bar-state {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* A card is waiting. Said in words, in the accent the card's own border uses. */
+.vc-bar-state.vc-bar-wait { color: var(--accent); }
+
+.vc-bar .vc-bar-btn {
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  min-height: 36px;
+}
+
+.vc-bar .vc-bar-btn .vc-mic { width: 17px; height: 17px; }
+
+.vc-bar-stop { flex: 0 0 auto; }
+
+/* The agent page is exactly one screenful on a wide screen. With the bar above it, it is one bar
+   shorter, or the composer goes below the fold. */
+@media (min-width: 720px) {
+  body:has(.vc-bar) .agent-page { height: calc(100vh - var(--topbar-h) - 52px); }
+}
+
+@media (max-width: 719px) {
+  .vc-bar { padding: 0 var(--s2); gap: 6px; }
+  .vc-bar-open { gap: var(--s1); }
+}
+
+/* -- the call screen, laid out like a phone call (2026-10-06) ------------------------------
+   the front desk's name and the time at the top, the orb, the state word, the last lines, and one row
+   of round controls at the foot, each with its word under it. Ask or Auto is a word at the top
+   right, because it is a setting and not something to reach for mid call. */
+.voice#voice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: calc(var(--s4) + env(safe-area-inset-bottom, 0px));
+}
+.voice#voice .voice-inner { flex: 1 1 auto; min-height: 100%; gap: var(--s2); }
+.vc-name {
+  margin: var(--s3) 0 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 46px;
+  line-height: 1;
+  color: var(--text);
+}
+.vc-time {
+  margin: 0 0 var(--s2);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  color: var(--text-faint);
+}
+.voice#voice .vc-mode {
+  position: absolute;
+  top: calc(var(--s3) + env(safe-area-inset-top, 0px));
+  right: var(--s3);
+  min-width: 0;
+  height: 44px;
+  padding: 0 var(--s1);
+  border: 0;
+  background: none;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: .6px;
+}
+.voice#voice .vc-mode.vc-on { color: var(--accent); }
+.vc-turn.vc-them { font-style: italic; }
+.voice#voice .vc-controls {
+  margin-top: auto;
+  padding-top: var(--s3);
+  gap: 22px;
+  flex-wrap: nowrap;
+}
+.vc-k {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.voice#voice .vc-controls .vc-round {
+  width: 64px;
+  min-width: 64px;
+  height: 64px;
+  min-height: 64px;
+  border-color: var(--border);
+}
+.voice#voice .vc-controls .vc-mic { width: 26px; height: 26px; }
+.voice#voice .vc-controls .voice-stop {
+  min-width: 64px;
+  border: 0;
+  background: var(--down);
+  color: #0f0e0d;
+}
+.voice#voice .vc-controls .voice-stop:hover { background: color-mix(in srgb, var(--down) 88%, #fff); }
+.vc-end { width: 30px; height: 30px; fill: currentColor; }
+@media (max-width: 719px) {
+  .voice#voice .orb-big { width: 210px; height: 210px; }
+  .vc-name { font-size: 42px; }
+  .voice#voice .vc-controls { gap: 16px; }
+}
+/* A call owns the screen. The glass let the tab bar's words show under the controls. */
+.voice#voice { background: var(--bg); animation: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+/* Five controls in the app (Speaker joins them): smaller, so the row fits a phone's width. */
+@media (max-width: 719px) {
+  .voice#voice .vc-controls { gap: 10px; }
+  .voice#voice .vc-controls .vc-round { width: 58px; min-width: 58px; height: 58px; min-height: 58px; }
+  .voice#voice .vc-controls .vc-mic { width: 24px; height: 24px; }
+}

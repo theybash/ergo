@@ -1,0 +1,72 @@
+/* The few rules the Recruit screen needs that the frozen stylesheet does not carry.
+   Everything here is prefixed .rc- so it can never collide with app.css. */
+
+/* The way back. Quiet text rather than a button face: the tabs are the way around the console
+   and this is a courtesy for a phone that arrived here by a link. */
+.rc-back {
+  margin-left: auto;
+  border: 0; background: none; padding: 4px 2px;
+  color: var(--text-faint); font-size: 12.5px; text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.rc-back:hover { color: var(--text-dim); }
+
+/* One filter over both lists. It sits under the head and nowhere else, because two search
+   boxes on one screen is two places to look. */
+.rc-find { margin-bottom: 0; }
+
+/* The first section sits closer than a full section gap, since the filter above it already
+   belongs to it. */
+.rc-first-section { margin-top: var(--s4); }
+
+/* ---- a row ------------------------------------------------------------ */
+
+/* The card face, in a row. Same surface, same border, a smaller corner: the size of the corner
+   tells you the size of the thing, and this is a line in a list, not a card in a grid. */
+.rc-row {
+  display: flex; align-items: flex-start; gap: var(--s2);
+  padding: var(--s2) var(--s3);
+  margin-bottom: 6px;
+  border: 1px solid var(--border); border-radius: var(--rm);
+  background: var(--surface);
+}
+.rc-row:hover { border-color: var(--border-hi); background: var(--surface-hi); }
+
+.rc-body { flex: 1 1 auto; min-width: 0; }
+.rc-row .btn { flex: 0 0 auto; }
+
+.rc-name {
+  font-family: var(--font-display); font-size: 17px; line-height: 1.2;
+  margin: 0 0 2px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* The first thing the owner typed, or the last thing the agent said. One line, cut, because a
+   briefing four lines long is not a title. */
+.rc-said {
+  margin: 0; color: var(--text-dim); font-size: 13px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* Folder, age, turns, size. Mono, faint, one line: figures you may read aloud. */
+.rc-facts {
+  display: flex; flex-wrap: wrap; gap: var(--s2);
+  margin: 4px 0 0;
+  font-family: var(--font-mono); font-size: 11px; color: var(--text-faint);
+}
+.rc-where { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* A session the console already has a record for. Muted words, no button: there is nothing
+   to press, and saying so is the answer to "where did that conversation go". */
+.rc-known { flex: 0 0 auto; color: var(--text-faint); font-size: 12px; padding: 0 2px; }
+
+/* Asked for only when the file carries no name of its own. Enter confirms, Escape drops it.
+   Capped, because a name is two words and a field the width of the row invites a sentence. */
+.rc-name-field { margin: var(--s1) 0 0; min-height: 38px; max-width: 340px; }
+
+@media (max-width: 719px) {
+  /* The button drops under the words rather than squeezing them, and stays a thumb wide. */
+  .rc-row { flex-wrap: wrap; }
+  .rc-body { flex: 1 1 100%; }
+  .rc-row .btn { min-height: 38px; }
+}

@@ -1,0 +1,44 @@
+/* Cards from the show tool. Quiet: a thin line at the left, like a question read back, and no box,
+   no shadow, no label saying what kind of card it is. */
+.sw-card {
+  border-left: 2px solid var(--border-hi); padding-left: var(--s2);
+  max-width: min(560px, 100%); min-width: 0; box-sizing: border-box;
+}
+.sw-q { font-size: 14px; margin: 0 0 8px; color: var(--text); }
+.sw-card .options { margin-bottom: 0; }
+.sw-error { font-size: 12.5px; color: var(--down); margin: 6px 0 0; }
+
+/* A picked choice, folded to one line. */
+.sw-receipt { font-size: 12.5px; color: var(--text-faint); margin: 0; padding: 0 2px; }
+.sw-receipt b { color: var(--text-dim); font-weight: 500; }
+
+/* Report. */
+.sw-title { font-family: var(--font-ui); font-size: 16px; font-weight: 500; margin: 0 0 8px; }
+.sw-section { margin-bottom: 8px; }
+.sw-head { font-size: 12.5px; color: var(--text-dim); margin: 0 0 2px; }
+.sw-body { font-size: 14px; line-height: 1.45; margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.sw-link { font-size: 13.5px; color: var(--accent); }
+
+/* Tasks. */
+.sw-tasks { list-style: none; margin: 0; padding: 0; }
+.sw-task { margin: 0 0 4px; }
+.sw-task-line { display: flex; align-items: center; gap: 10px; min-height: 36px; }
+.sw-tick {
+  flex: 0 0 auto; width: 18px; height: 18px; padding: 0; border-radius: 50%;
+  border: 1.5px solid var(--border-hi); background: none; color: var(--accent);
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.sw-tick:hover { border-color: var(--accent); }
+.sw-tick svg { width: 11px; height: 11px; }
+.sw-ticked { border-color: var(--accent); cursor: default; }
+.sw-none { border-style: dashed; cursor: default; }
+.sw-task-title { flex: 1 1 auto; min-width: 0; font-size: 14px; line-height: 1.35; overflow-wrap: anywhere; }
+.sw-dim { color: var(--text-dim); text-decoration: line-through; }
+.sw-due { flex: 0 0 auto; font-family: var(--font-mono); font-size: 11px; color: var(--text-faint); }
+.sw-word {
+  flex: 0 0 auto; border: 0; background: none; padding: 6px 2px; font: inherit;
+  font-size: 12.5px; color: var(--text-dim); cursor: pointer;
+}
+.sw-word:hover { color: var(--text); }
+.sw-moves { display: flex; gap: var(--s1); padding: 0 0 6px 28px; flex-wrap: wrap; }
+.sw-none-left { font-size: 12.5px; color: var(--text-faint); margin: 0; }

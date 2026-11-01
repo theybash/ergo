@@ -1,0 +1,6 @@
+node_modules/
+.pid
+.log
+# The Android app and its version file, put here by android/release.sh for the in-app updater.
+public/app/
+dist/app/
