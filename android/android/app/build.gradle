@@ -24,8 +24,8 @@ android {
         applicationId "dev.ergo.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode((project.findProperty('versionCode') ?: '79') as int)
-        versionName "1.22.3"
+        versionCode((project.findProperty('versionCode') ?: '1') as int)
+        versionName "0.1.0"
         buildConfigField 'String', 'UPDATE_URL', "\"${updateUrl}\""
         buildConfigField 'long', 'UPDATE_EVERY_MS', '60000L'
         // Only the default. The address in use is the saved one (Daemon.kt).
